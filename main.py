@@ -2,6 +2,23 @@
 
 import os
 import sys
+
+# ── Suppress C++ stderr noise from TFLite / MediaPipe ────────────────────────
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["GLOG_minloglevel"] = "2"
+
+def _suppress_stderr():
+    """Redirect fd-2 to devnull (silences C++ warnings)."""
+    _old = os.dup(2)
+    os.dup2(os.open(os.devnull, os.O_WRONLY), 2)
+    return _old
+
+def _restore_stderr(fd):
+    os.dup2(fd, 2)
+    os.close(fd)
+
+_saved_fd = _suppress_stderr()
+
 import time
 import urllib.request
 
@@ -9,6 +26,8 @@ import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+
+_restore_stderr(_saved_fd)
 
 from camera_utils import open_camera_with_fallback
 from config import (
@@ -65,16 +84,19 @@ def ensure_pose_model(model_path, model_url):
 
 
 def create_pose_landmarker(model_path):
-    """Create a MediaPipe Pose Landmarker configured for image mode."""
+    """Create a MediaPipe Pose Landmarker configured for video mode."""
+    _fd = _suppress_stderr()
     options = vision.PoseLandmarkerOptions(
         base_options=python.BaseOptions(model_asset_path=model_path),
-        running_mode=vision.RunningMode.IMAGE,
+        running_mode=vision.RunningMode.VIDEO,
         num_poses=POSE_NUM_POSES,
         min_pose_detection_confidence=POSE_MIN_DETECTION_CONFIDENCE,
         min_pose_presence_confidence=POSE_MIN_PRESENCE_CONFIDENCE,
         min_tracking_confidence=POSE_MIN_TRACKING_CONFIDENCE,
     )
-    return vision.PoseLandmarker.create_from_options(options)
+    landmarker = vision.PoseLandmarker.create_from_options(options)
+    _restore_stderr(_fd)
+    return landmarker
 
 
 def _landmark_visibility(landmark):
@@ -228,6 +250,8 @@ def main():
     prev_t = time.time()
     fps = 0.0
     ui_enabled = True
+    frame_ts = 0
+    _first_detect = True  # suppress C++ warning on first detection
 
     try:
         while True:
@@ -241,7 +265,15 @@ def main():
 
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-            result = landmarker.detect(mp_image)
+            frame_ts += 33  # ~30 fps in milliseconds
+
+            if _first_detect:
+                _fd = _suppress_stderr()
+                result = landmarker.detect_for_video(mp_image, frame_ts)
+                _restore_stderr(_fd)
+                _first_detect = False
+            else:
+                result = landmarker.detect_for_video(mp_image, frame_ts)
 
             pose_found = False
             visible_points = 0

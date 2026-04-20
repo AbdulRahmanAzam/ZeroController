@@ -1,4 +1,4 @@
-"""Configuration for ZeroController pose visualization mode."""
+"""Configuration for ZeroController pose visualization and data collection."""
 
 # Camera settings
 CAMERA_INDEX = 0
@@ -32,3 +32,16 @@ POINT_COLOR = (0, 255, 255)
 LINE_COLOR = (0, 200, 0)
 TEXT_COLOR = (255, 255, 255)
 POINT_RADIUS = 3
+
+# --- Data collection ---
+DATA_DIR = "data/raw"
+SEQUENCE_LENGTH = 30          # frames per sample (~1 sec at 30 fps)
+ACTIONS = ["right_punch", "left_punch"]
+
+# --- Training ---
+MODEL_SAVE_PATH = "models/punch_classifier.pth"
+EPOCHS = 120
+BATCH_SIZE = 8
+LEARNING_RATE = 1e-3
+HIDDEN_SIZE = 64
+NUM_LSTM_LAYERS = 1
