@@ -1,79 +1,186 @@
-"""
-ZeroController — Main Entry Point
-==================================
-AI-Powered Controller-Free Fighting Game (Part 1: Move Detection)
-
-This script:
-  1. Opens your webcam
-  2. Uses MediaPipe Pose to track your body in real-time
-  3. Detects fighting moves (punch, kick, block, crouch, jump, move)
-  4. Presses corresponding keyboard keys
-  5. Prints detected moves to the console
-  6. Shows a visual overlay with skeleton + move labels
-
-Controls:
-  - Press 'q' to quit
-  - Press 'r' to recalibrate (stand still again)
-  - Press 'p' to pause/resume keyboard output
-  - Press 'c' to toggle camera view
-
-Stand still for ~1 second when the app starts so it can calibrate your baseline position.
-"""
+"""ZeroController - 33-point MediaPipe pose visualization."""
 
 import os
+import sys
+import time
+import urllib.request
+
 import cv2
 import mediapipe as mp
-import time
-import sys
-from datetime import datetime
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
 
-import numpy as np
-import torch
-
+from camera_utils import open_camera_with_fallback
 from config import (
-    CAMERA_INDEX, CAMERA_WIDTH, CAMERA_HEIGHT,
-    CAMERA_TARGET_FPS, CAMERA_BACKEND, CAMERA_BUFFER_SIZE,
-    AUTO_BACKEND_FALLBACK, BLACK_FRAME_MEAN_THRESHOLD, BLACK_FRAME_FALLBACK_COUNT,
-    POSE_MIN_DETECTION_CONFIDENCE, POSE_MIN_TRACKING_CONFIDENCE,
-    POSE_MODEL_COMPLEXITY, PROCESS_SCALE, USE_GPU,
-    SHOW_LANDMARKS, SHOW_MOVE_LABEL, WINDOW_NAME, FPS_DISPLAY,
-    KEY_MAP_P1, LSTM_MODEL_PATH,
+    CAMERA_INDEX,
+    CAMERA_BACKEND,
+    WINDOW_NAME,
+    MIRROR_VIEW,
+    SHOW_CONNECTIONS,
+    SHOW_FPS,
+    SHOW_LANDMARK_IDS,
+    POSE_MODEL_PATH,
+    POSE_MODEL_URL,
+    POSE_NUM_POSES,
+    POSE_MIN_DETECTION_CONFIDENCE,
+    POSE_MIN_PRESENCE_CONFIDENCE,
+    POSE_MIN_TRACKING_CONFIDENCE,
+    POINT_COLOR,
+    LINE_COLOR,
+    TEXT_COLOR,
+    POINT_RADIUS,
 )
-from move_detector import MoveDetector
-from keyboard_controller import KeyboardController
 
 
-# ─── Move display config ─────────────────────────────────────────
-MOVE_COLORS = {
-    "left_punch":   (0, 100, 255),    # Orange
-    "right_punch":  (0, 100, 255),    # Orange
-    "left_kick":    (0, 255, 255),    # Yellow
-    "right_kick":   (0, 255, 255),    # Yellow
-    "block":        (255, 200, 0),    # Cyan-ish
-    "crouch":       (255, 0, 150),    # Purple
-    "jump":         (0, 255, 0),      # Green
-    "move_left":    (255, 150, 0),    # Blue
-    "move_right":   (255, 150, 0),    # Blue
-}
+POSE_CONNECTIONS = [
+    (0, 1), (1, 2), (2, 3), (3, 7),
+    (0, 4), (4, 5), (5, 6), (6, 8),
+    (9, 10),
+    (11, 12),
+    (11, 13), (13, 15),
+    (15, 17), (15, 19), (15, 21), (17, 19),
+    (12, 14), (14, 16),
+    (16, 18), (16, 20), (16, 22), (18, 20),
+    (11, 23), (12, 24), (23, 24),
+    (23, 25), (24, 26),
+    (25, 27), (26, 28),
+    (27, 29), (28, 30),
+    (29, 31), (30, 32),
+    (27, 31), (28, 32),
+]
 
-MOVE_EMOJIS = {
-    "left_punch":   "👊 LEFT PUNCH",
-    "right_punch":  "👊 RIGHT PUNCH",
-    "left_kick":    "🦵 LEFT KICK",
-    "right_kick":   "🦵 RIGHT KICK",
-    "block":        "🛡️  BLOCK",
-    "crouch":       "⬇️  CROUCH",
-    "jump":         "⬆️  JUMP",
-    "move_left":    "◀️  MOVE LEFT",
-    "move_right":   "▶️  MOVE RIGHT",
-}
 
-# How long (seconds) a detected move stays visible on the HUD
-MOVE_DISPLAY_DURATION = 0.8
+def ensure_pose_model(model_path, model_url):
+    """Download pose model if missing."""
+    if os.path.exists(model_path):
+        return
+
+    model_dir = os.path.dirname(model_path)
+    if model_dir:
+        os.makedirs(model_dir, exist_ok=True)
+
+    print(f"[MODEL] Downloading pose model to: {model_path}")
+    urllib.request.urlretrieve(model_url, model_path)
+    print("[MODEL] Download complete")
+
+
+def create_pose_landmarker(model_path):
+    """Create a MediaPipe Pose Landmarker configured for image mode."""
+    options = vision.PoseLandmarkerOptions(
+        base_options=python.BaseOptions(model_asset_path=model_path),
+        running_mode=vision.RunningMode.IMAGE,
+        num_poses=POSE_NUM_POSES,
+        min_pose_detection_confidence=POSE_MIN_DETECTION_CONFIDENCE,
+        min_pose_presence_confidence=POSE_MIN_PRESENCE_CONFIDENCE,
+        min_tracking_confidence=POSE_MIN_TRACKING_CONFIDENCE,
+    )
+    return vision.PoseLandmarker.create_from_options(options)
+
+
+def _landmark_visibility(landmark):
+    if hasattr(landmark, "visibility"):
+        return float(landmark.visibility)
+    if hasattr(landmark, "presence"):
+        return float(landmark.presence)
+    return 1.0
+
+
+def draw_pose(frame, landmarks):
+    """Draw 33 landmarks and skeleton connections."""
+    h, w = frame.shape[:2]
+    points = []
+
+    for idx, lm in enumerate(landmarks):
+        x = int(lm.x * w)
+        y = int(lm.y * h)
+        v = _landmark_visibility(lm)
+        points.append((idx, x, y, v))
+
+    if SHOW_CONNECTIONS:
+        for a, b in POSE_CONNECTIONS:
+            if a >= len(points) or b >= len(points):
+                continue
+            _, ax, ay, av = points[a]
+            _, bx, by, bv = points[b]
+            if av < 0.25 or bv < 0.25:
+                continue
+            cv2.line(frame, (ax, ay), (bx, by), LINE_COLOR, 2, cv2.LINE_AA)
+
+    visible_count = 0
+    for idx, x, y, v in points:
+        if v < 0.25:
+            continue
+        if x < 0 or y < 0 or x >= w or y >= h:
+            continue
+
+        visible_count += 1
+        cv2.circle(frame, (x, y), POINT_RADIUS, POINT_COLOR, -1, cv2.LINE_AA)
+
+        if SHOW_LANDMARK_IDS:
+            cv2.putText(
+                frame,
+                str(idx),
+                (x + 4, y - 4),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.35,
+                TEXT_COLOR,
+                1,
+                cv2.LINE_AA,
+            )
+
+    return visible_count
+
+
+def draw_hud(frame, fps, pose_found, visible_points, backend_name):
+    """Draw basic status text."""
+    status = "POSE: DETECTED" if pose_found else "POSE: NOT DETECTED"
+    color = (0, 220, 0) if pose_found else (0, 180, 255)
+
+    cv2.putText(frame, status, (15, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+    cv2.putText(
+        frame,
+        f"VISIBLE POINTS: {visible_points}/33",
+        (15, 60),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        TEXT_COLOR,
+        2,
+    )
+    cv2.putText(
+        frame,
+        f"BACKEND: {backend_name}",
+        (15, 88),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.6,
+        TEXT_COLOR,
+        2,
+    )
+
+    if SHOW_FPS:
+        cv2.putText(
+            frame,
+            f"FPS: {fps:.1f}",
+            (15, 116),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            TEXT_COLOR,
+            2,
+        )
+
+    cv2.putText(
+        frame,
+        "Q: Quit",
+        (15, frame.shape[0] - 12),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.55,
+        TEXT_COLOR,
+        1,
+        cv2.LINE_AA,
+    )
 
 
 def show_frame(window_name, frame, ui_enabled):
-    """Render frame if GUI backend is available, otherwise switch to headless mode."""
+    """Render frame safely, handling headless OpenCV installations."""
     if not ui_enabled:
         return False, -1
 
@@ -82,370 +189,89 @@ def show_frame(window_name, frame, ui_enabled):
         key = cv2.waitKey(1) & 0xFF
         return True, key
     except cv2.error as err:
-        print("\n[WARN] OpenCV GUI backend is not available. Switching to headless mode.")
-        print("[WARN] Install GUI-enabled OpenCV and remove headless builds if you need video preview.")
-        print("[WARN] OpenCV key controls are disabled in headless mode. Use Ctrl+C to quit.")
+        print("[WARN] OpenCV GUI backend is unavailable.")
+        print("[WARN] Install GUI-enabled OpenCV to see landmark rendering window.")
         print(f"[WARN] Details: {err}")
         return False, -1
 
 
-def open_camera(index, backend_name):
-    """Open camera with requested backend and apply capture settings."""
-    if backend_name == "dshow":
-        cap = cv2.VideoCapture(index, cv2.CAP_DSHOW)
-    elif backend_name == "msmf":
-        cap = cv2.VideoCapture(index, cv2.CAP_MSMF)
-    else:
-        cap = cv2.VideoCapture(index)
-
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
-    cap.set(cv2.CAP_PROP_FPS, CAMERA_TARGET_FPS)
-    try:
-        cap.set(cv2.CAP_PROP_BUFFERSIZE, CAMERA_BUFFER_SIZE)
-    except Exception:
-        pass
-    return cap
-
-
-def draw_overlay(frame, recent_moves, fps, is_calibrated, keyboard_active, detector):
-    """Draw HUD overlay on the camera frame.
-
-    recent_moves: list of (move_name, timestamp) tuples for moves still within display duration.
-    """
-    h, w = frame.shape[:2]
-    now = time.time()
-
-    # Semi-transparent header bar
-    overlay = frame.copy()
-    cv2.rectangle(overlay, (0, 0), (w, 50), (20, 20, 20), -1)
-    cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
-
-    # Title
-    cv2.putText(frame, "ZERO CONTROLLER", (15, 35),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 220, 255), 2)
-
-    # FPS
-    if FPS_DISPLAY:
-        cv2.putText(frame, f"FPS: {fps:.0f}", (w - 150, 35),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 255, 100), 2)
-
-    # Status indicators
-    status_y = 80
-    if not is_calibrated:
-        progress = int((detector.calibration_frames / detector.calibration_target) * 100)
-        cv2.putText(frame, f"CALIBRATING... Stand still! ({progress}%)", (15, status_y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 255), 2)
-        # Progress bar
-        bar_w = 300
-        bar_h = 15
-        bar_x, bar_y = 15, status_y + 10
-        cv2.rectangle(frame, (bar_x, bar_y), (bar_x + bar_w, bar_y + bar_h), (50, 50, 50), -1)
-        fill_w = int(bar_w * (detector.calibration_frames / detector.calibration_target))
-        cv2.rectangle(frame, (bar_x, bar_y), (bar_x + fill_w, bar_y + bar_h), (0, 220, 255), -1)
-    else:
-        status_color = (0, 255, 0) if keyboard_active else (0, 150, 255)
-        status_text = "KEYBOARD: ON" if keyboard_active else "KEYBOARD: PAUSED"
-        cv2.putText(frame, status_text, (15, status_y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, status_color, 2)
-
-    # Detected moves panel — show recent moves with fade-out
-    if recent_moves and SHOW_MOVE_LABEL:
-        # Deduplicate: keep the most recent timestamp per move name
-        unique = {}
-        for move, ts in recent_moves:
-            unique[move] = ts
-        display_list = list(unique.items())
-
-        panel_y = h - 30 - (len(display_list) * 50)
-        # Semi-transparent panel background
-        overlay2 = frame.copy()
-        cv2.rectangle(overlay2, (10, panel_y - 10), (350, h - 10), (20, 20, 20), -1)
-        cv2.addWeighted(overlay2, 0.6, frame, 0.4, 0, frame)
-
-        for i, (move, ts) in enumerate(display_list):
-            y = panel_y + (i * 50) + 30
-            age = now - ts
-            # Fade opacity: 1.0 when fresh, 0.3 when about to expire
-            alpha = max(0.3, 1.0 - (age / MOVE_DISPLAY_DURATION) * 0.7)
-            base_color = MOVE_COLORS.get(move, (255, 255, 255))
-            color = tuple(int(c * alpha) for c in base_color)
-
-            label = move.replace("_", " ").upper()
-
-            # Draw accent line
-            cv2.rectangle(frame, (15, y - 25), (20, y + 5), color, -1)
-            # Draw move text
-            cv2.putText(frame, label, (30, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
-
-    # Help text at bottom
-    help_text = "Q:Quit  R:Recalibrate  P:Pause Keys"
-    cv2.putText(frame, help_text, (w - 400, h - 15),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.45, (150, 150, 150), 1)
-
-    return frame
-
-
 def main():
     print("=" * 60)
-    print("  ZERO CONTROLLER — AI Fighting Game Input System")
-    print("  Part 1: MediaPipe Pose → Move Detection → Keyboard")
+    print("  ZERO CONTROLLER - POSE VISUALIZER")
+    print("  Mode: 33-point MediaPipe pose tracking")
     print("=" * 60)
-    print()
-    print(f"  Camera Index     : {CAMERA_INDEX}")
-    print(f"  Resolution       : {CAMERA_WIDTH}x{CAMERA_HEIGHT}")
-    print(f"  Target FPS       : {CAMERA_TARGET_FPS}")
-    print(f"  Model Complexity : {POSE_MODEL_COMPLEXITY}")
-    print(f"  Process Scale    : {PROCESS_SCALE}")
-    print(f"  Camera Backend   : {CAMERA_BACKEND}")
-    print()
-    print("  INSTRUCTIONS:")
-    print("  1. Stand in front of your camera (full body visible)")
-    print("  2. Stand STILL for ~1 second (calibration)")
-    print("  3. Start fighting! Punch, kick, block, crouch, jump")
-    print()
-    print("  CONTROLS:")
-    print("  Q = Quit | R = Recalibrate | P = Pause/Resume keyboard")
-    print()
-    print("  KEY MAPPINGS:")
-    for move, key in KEY_MAP_P1.items():
-        print(f"    {move:15s} → '{key}'")
-    print()
-    print("-" * 60)
-    print()
 
-    # ─── Initialize components ────────────────────────────────────
-    if os.path.exists(LSTM_MODEL_PATH):
-        from lstm_detector import LSTMMoveDetector
-        detector = LSTMMoveDetector(LSTM_MODEL_PATH)
-        print(f"[MODEL] LSTM detector loaded from {LSTM_MODEL_PATH}")
-    else:
-        detector = MoveDetector()
-        print("[MODEL] Using rule-based detector (no LSTM model found)")
-    keyboard = KeyboardController(KEY_MAP_P1)
-    keyboard_active = True
-
-    # ─── Initialize MediaPipe Pose ────────────────────────────────
-    mp_pose = mp.solutions.pose
-    mp_drawing = mp.solutions.drawing_utils
-    mp_drawing_styles = mp.solutions.drawing_styles
-
-    pose = mp_pose.Pose(
-        min_detection_confidence=POSE_MIN_DETECTION_CONFIDENCE,
-        min_tracking_confidence=POSE_MIN_TRACKING_CONFIDENCE,
-        model_complexity=POSE_MODEL_COMPLEXITY,
-        enable_segmentation=False,
-        smooth_landmarks=True,
-    )
-
-    # ─── Open Camera ──────────────────────────────────────────────
-    print("[CAMERA] Opening camera...")
-    backend_name = CAMERA_BACKEND.lower()
-    cap = open_camera(CAMERA_INDEX, backend_name)
-
-    if not cap.isOpened():
-        print("[ERROR] Could not open camera! Check your camera index in config.py")
+    try:
+        ensure_pose_model(POSE_MODEL_PATH, POSE_MODEL_URL)
+    except Exception as err:
+        print(f"[ERROR] Failed to prepare model: {err}")
         sys.exit(1)
 
-    actual_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    actual_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    actual_fps = cap.get(cv2.CAP_PROP_FPS)
-    print(f"[CAMERA] Opened successfully! Resolution: {actual_w}x{actual_h} @ {actual_fps:.1f} FPS")
+    try:
+        landmarker = create_pose_landmarker(POSE_MODEL_PATH)
+    except Exception as err:
+        print(f"[ERROR] Failed to initialize Pose Landmarker: {err}")
+        sys.exit(1)
 
-    # ─── GPU / CUDA setup ─────────────────────────────────────────
-    cv2.setUseOptimized(True)
-    gpu_device = None
-    if USE_GPU and torch.cuda.is_available():
-        gpu_device = torch.device("cuda")
-        gpu_name = torch.cuda.get_device_name(0)
-        vram_gb = round(torch.cuda.get_device_properties(0).total_memory / 1e9, 2)
-        print(f"[PERF] CUDA GPU: {gpu_name}  ({vram_gb} GB)")
-        print(f"[PERF] Frame preprocessing will run on GPU")
-        # Pre-allocate a reusable CUDA tensor for resize ops
-        _tgt_h = int(CAMERA_HEIGHT * PROCESS_SCALE) if PROCESS_SCALE < 1.0 else CAMERA_HEIGHT
-        _tgt_w = int(CAMERA_WIDTH  * PROCESS_SCALE) if PROCESS_SCALE < 1.0 else CAMERA_WIDTH
-    else:
-        if USE_GPU:
-            print("[PERF] USE_GPU=True but CUDA not available — falling back to CPU")
-        else:
-            print("[PERF] GPU disabled. Running on CPU")
-        gpu_device = None
+    cap, backend_name = open_camera_with_fallback(CAMERA_INDEX, CAMERA_BACKEND)
+    if cap is None:
+        print("[ERROR] Could not open a working camera backend.")
+        try:
+            landmarker.close()
+        except Exception:
+            pass
+        sys.exit(1)
 
-    black_frame_count = 0
-    print()
-    print("[CALIBRATION] Stand still in front of the camera...")
-    print()
+    print(f"[CAMERA] Active backend: {backend_name}")
+    print("[INFO] Stand in front of camera. All 33 points will be drawn when pose is detected.")
 
-    # ─── Main Loop ────────────────────────────────────────────────
-    prev_frame_time = time.time()
-    fps = 0
-    move_log = []  # Log all moves for future coaching feature
-    recent_moves = []  # (move_name, timestamp) — moves currently visible on HUD
+    prev_t = time.time()
+    fps = 0.0
     ui_enabled = True
 
     try:
         while True:
-            ret, frame = cap.read()
-            if not ret:
-                print("[ERROR] Failed to read frame from camera!")
+            ok, frame = cap.read()
+            if not ok or frame is None:
+                print("[WARN] Camera frame read failed.")
                 break
 
-            # Some backends return valid-sized but all-black frames on specific webcams.
-            frame_mean = float(frame.mean())
-            if frame_mean < BLACK_FRAME_MEAN_THRESHOLD:
-                black_frame_count += 1
-            else:
-                black_frame_count = 0
+            if MIRROR_VIEW:
+                frame = cv2.flip(frame, 1)
 
-            if (AUTO_BACKEND_FALLBACK and black_frame_count >= BLACK_FRAME_FALLBACK_COUNT
-                    and backend_name != "msmf"):
-                print("[CAMERA] Black frames detected. Falling back to MSMF backend...")
-                cap.release()
-                backend_name = "msmf"
-                cap = open_camera(CAMERA_INDEX, backend_name)
-                black_frame_count = 0
-                continue
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+            result = landmarker.detect(mp_image)
 
-            # Flip horizontally for mirror effect
-            frame = cv2.flip(frame, 1)
+            pose_found = False
+            visible_points = 0
+            if result.pose_landmarks:
+                pose_found = True
+                visible_points = draw_pose(frame, result.pose_landmarks[0])
 
-            # Resize + BGR→RGB for MediaPipe.
-            # When CUDA is available we use torch to resize on the GPU then pull back to CPU.
-            if gpu_device is not None and PROCESS_SCALE < 1.0:
-                # frame: HxWx3 uint8 BGR numpy array
-                t = torch.from_numpy(frame).to(gpu_device, non_blocking=True)   # HxWx3
-                t = t.permute(2, 0, 1).unsqueeze(0).float()                     # 1x3xHxW
-                t = torch.nn.functional.interpolate(
-                    t, scale_factor=PROCESS_SCALE, mode="bilinear", align_corners=False
-                )
-                t = t.squeeze(0).permute(1, 2, 0).byte()                        # h'xw'x3
-                proc_bgr = t.cpu().numpy()
-                # Reverse channel order BGR→RGB
-                rgb_frame = proc_bgr[:, :, ::-1].copy()
-            elif PROCESS_SCALE < 1.0:
-                proc_bgr = cv2.resize(frame, None, fx=PROCESS_SCALE, fy=PROCESS_SCALE,
-                                      interpolation=cv2.INTER_LINEAR)
-                rgb_frame = cv2.cvtColor(proc_bgr, cv2.COLOR_BGR2RGB)
-            else:
-                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            rgb_frame.flags.writeable = False
+            now = time.time()
+            fps = 1.0 / max(now - prev_t, 1e-6)
+            prev_t = now
 
-            # Process with MediaPipe Pose
-            results = pose.process(rgb_frame)
-
-            rgb_frame.flags.writeable = True
-
-            # Calculate FPS
-            current_time = time.time()
-            fps = 1.0 / (current_time - prev_frame_time + 1e-6)
-            prev_frame_time = current_time
-
-            detected_moves = []
-
-            if results.pose_landmarks:
-                landmarks = results.pose_landmarks.landmark
-
-                # Draw skeleton
-                if SHOW_LANDMARKS:
-                    mp_drawing.draw_landmarks(
-                        frame,
-                        results.pose_landmarks,
-                        mp_pose.POSE_CONNECTIONS,
-                        landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style(),
-                    )
-
-                # Detect moves
-                detected_moves = detector.detect(landmarks)
-
-                # Process detected moves
-                if detected_moves:
-                    timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-
-                    for move in detected_moves:
-                        # Console output with color coding
-                        emoji = MOVE_EMOJIS.get(move, move)
-                        key = KEY_MAP_P1.get(move, "?")
-                        print(f"  [{timestamp}]  {emoji:20s}  →  Key: '{key}'")
-
-                        # Log for future coaching
-                        move_log.append({
-                            "time": current_time,
-                            "move": move,
-                            "key": key,
-                        })
-
-                        # Add to recent moves for HUD display
-                        recent_moves.append((move, current_time))
-
-                    # Press keyboard keys
-                    if keyboard_active:
-                        keyboard.press_moves(detected_moves)
-            else:
-                # No pose detected
-                if not detector.is_calibrated:
-                    pass  # Still waiting for person to appear
-                # Optionally show "No pose detected" message
-
-            # Expire old moves from the recent list
-            recent_moves = [(m, t) for m, t in recent_moves
-                            if current_time - t < MOVE_DISPLAY_DURATION]
-
-            # Draw HUD overlay
-            frame = draw_overlay(frame, recent_moves, fps,
-                                detector.is_calibrated, keyboard_active, detector)
-
-            # Show frame and read UI key input only when GUI backend is available.
+            draw_hud(frame, fps, pose_found, visible_points, backend_name)
             ui_enabled, key = show_frame(WINDOW_NAME, frame, ui_enabled)
-            if ui_enabled:
-                if key == ord('q'):
-                    print("\n[QUIT] Shutting down...")
-                    break
-                elif key == ord('r'):
-                    print("\n[RECALIBRATE] Stand still...")
-                    detector.reset_calibration()
-                elif key == ord('p'):
-                    keyboard_active = not keyboard_active
-                    state = "ON" if keyboard_active else "PAUSED"
-                    print(f"\n[KEYBOARD] {state}")
+            if not ui_enabled:
+                break
+
+            if key == ord("q"):
+                break
 
     except KeyboardInterrupt:
-        print("\n[QUIT] Interrupted by user")
-
+        pass
     finally:
-        # Cleanup
-        keyboard.release_all()
         cap.release()
-        if ui_enabled:
-            try:
-                cv2.destroyAllWindows()
-            except cv2.error:
-                # Ignore cleanup error when no GUI backend exists.
-                pass
-        pose.close()
+        cv2.destroyAllWindows()
+        try:
+            landmarker.close()
+        except Exception:
+            pass
 
-        # Print session summary
-        print()
-        print("=" * 60)
-        print("  SESSION SUMMARY")
-        print("=" * 60)
-        if move_log:
-            move_counts = {}
-            for entry in move_log:
-                m = entry["move"]
-                move_counts[m] = move_counts.get(m, 0) + 1
-
-            total = len(move_log)
-            print(f"  Total Moves Detected: {total}")
-            print()
-            for move, count in sorted(move_counts.items(), key=lambda x: -x[1]):
-                bar = "█" * min(count, 30)
-                print(f"    {move:15s}: {count:4d}  {bar}")
-        else:
-            print("  No moves detected this session.")
-        print()
-        print("  Session ended. GG! 🎮")
-        print("=" * 60)
+    print("[DONE] Pose visualizer closed.")
 
 
 if __name__ == "__main__":

@@ -1,79 +1,30 @@
-# ZeroController 🎮
+# ZeroController - Pose Visualizer
 
-## AI-Powered Controller-Free Fighting Game Input System
+This project is now focused only on one goal:
 
-Use your body as a game controller! Stand in front of your webcam, throw punches and kicks, and the system translates your real movements into keyboard inputs for any fighting game.
+- Detect your body pose from webcam in real-time
+- Draw all 33 MediaPipe pose landmarks on your body
+- Draw skeleton connections between landmarks
 
-## Part 1: Move Detection System
+No training pipeline, no move classification, and no keyboard control are included.
 
-### Supported Moves
-
-| Move | Detection Method | Default Key (P1) |
-|------|-----------------|-------------------|
-| Left Punch | Left arm fully extended + fast motion | `U` |
-| Right Punch | Right arm fully extended + fast motion | `I` |
-| Left Kick | Left ankle rises above knee level | `J` |
-| Right Kick | Right ankle rises above knee level | `K` |
-| Block | Both wrists raised near face | `O` |
-| Crouch | Head drops below standing baseline | `S` |
-| Jump | Both ankles rise above standing baseline | `W` |
-| Move Left | Hips shift left from baseline | `A` |
-| Move Right | Hips shift right from baseline | `D` |
-
-### Setup
+## Setup
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Run
+## Run
 
 ```bash
 python main.py
 ```
 
-### Controls
+## Controls
 
-| Key | Action |
-|-----|--------|
-| `Q` | Quit |
-| `R` | Recalibrate (stand still again) |
-| `P` | Pause/Resume keyboard output |
+- `Q` quit the app
 
-### How It Works
+## Notes
 
-1. **Calibration** — Stand still for ~1 second when the app starts. The system records your standing baseline position.
-2. **Detection** — MediaPipe Pose tracks 33 body landmarks in real-time. The move detector analyzes joint angles, distances, and speeds to classify your movements.
-3. **Output** — Detected moves are printed to the console and translated into keyboard presses using `pynput`.
-
-### File Structure
-
-```
-zeroController/
-├── main.py                # Main entry point — camera loop + display
-├── move_detector.py       # Core move detection logic using landmarks
-├── keyboard_controller.py # Translates moves → keyboard key presses
-├── config.py              # All tunable settings, thresholds, key maps
-├── requirements.txt       # Python dependencies
-└── README.md              # This file
-```
-
-### Tips
-
-- Make sure your **full body** is visible in the camera
-- Stand ~6-8 feet away from the camera for best results
-- Good lighting helps a lot!
-- If detection feels off, press `R` to recalibrate
-- Adjust thresholds in `config.py` to tune sensitivity
-
-### Troubleshooting
-
-- If you see an OpenCV error like `cvShowImage` / `cvDestroyAllWindows` not implemented, your environment likely has a headless OpenCV build.
-- Fix it with:
-
-```bash
-pip uninstall -y opencv-python-headless
-pip install --upgrade opencv-python
-```
-
-- The app now falls back to headless mode automatically (no camera window). In headless mode, OpenCV hotkeys (`Q`, `R`, `P`) are unavailable, so use `Ctrl+C` to stop.
+- On first run, the app downloads `pose_landmarker_full.task` into the `models/` folder.
+- If camera startup fails on one backend, it automatically tries fallback backends.
