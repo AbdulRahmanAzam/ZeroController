@@ -1,8 +1,10 @@
-"""Collect pose-landmark sequences for punch training data.
+"""Collect pose-landmark sequences for multi-action training data.
 
 Controls:
+    1-9    - Select action by number (shown in sidebar)
     SPACE  - Start recording a sequence (SEQUENCE_LENGTH frames)
-    L      - Cycle through action labels
+    A      - Toggle auto-mode (auto-records after a short delay after each save)
+    L      - Cycle to next action label
     Q      - Quit
 
 Each sample is saved as  data/raw/<label>/sample_<number>.npy
@@ -116,40 +118,78 @@ def _draw_skeleton(frame, landmarks):
         cv2.circle(frame, (x, y), POINT_RADIUS, POINT_COLOR, -1, cv2.LINE_AA)
 
 
-def _draw_collection_hud(frame, label, saved, recording, rec_progress, fps):
-    """Draw data-collection status overlay."""
+def _draw_collection_hud(frame, actions, label_idx, saved_counts, recording, rec_progress, fps, auto_mode, countdown):
+    """Draw data-collection status overlay with sidebar showing all actions."""
     h, w = frame.shape[:2]
 
-    # Recording flash
+    # ── Recording border flash ────────────────────────────────────────────────
     if recording:
-        border_color = (0, 0, 255)
-        cv2.rectangle(frame, (0, 0), (w - 1, h - 1), border_color, 4)
+        cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 0, 255), 4)
         cv2.putText(frame, f"REC  {rec_progress}/{SEQUENCE_LENGTH}",
-                    (15, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, border_color, 2)
+                    (15, 35), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
+    elif countdown > 0:
+        cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 165, 255), 3)
+        cv2.putText(frame, f"GET READY  {countdown}",
+                    (15, 35), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 165, 255), 2)
     else:
-        cv2.putText(frame, "READY", (15, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 220, 0), 2)
+        status = "AUTO" if auto_mode else "READY"
+        color = (0, 200, 255) if auto_mode else (0, 220, 0)
+        cv2.putText(frame, status, (15, 35),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
 
-    cv2.putText(frame, f"Label: {label}", (15, 65),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, TEXT_COLOR, 2)
-    cv2.putText(frame, f"Saved: {saved}", (15, 95),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, TEXT_COLOR, 2)
-    cv2.putText(frame, f"FPS: {fps:.1f}", (15, 125),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, TEXT_COLOR, 2)
+    # ── FPS ───────────────────────────────────────────────────────────────────
+    cv2.putText(frame, f"FPS: {fps:.1f}", (15, 68),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, TEXT_COLOR, 1)
 
-    # Controls
-    controls = "SPACE: Record  |  L: Label  |  Q: Quit"
-    cv2.putText(frame, controls, (15, h - 12),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, TEXT_COLOR, 1, cv2.LINE_AA)
+    # ── Right-side action sidebar ─────────────────────────────────────────────
+    sidebar_x = w - 240
+    cv2.rectangle(frame, (sidebar_x - 8, 0), (w, len(actions) * 34 + 14), (20, 20, 20), -1)
+    cv2.putText(frame, "ACTIONS", (sidebar_x, 18),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.55, (180, 180, 180), 1)
+
+    for i, action in enumerate(actions):
+        y = 44 + i * 34
+        is_active = (i == label_idx)
+        bg = (50, 120, 200) if is_active else (40, 40, 40)
+        cv2.rectangle(frame, (sidebar_x - 6, y - 20), (w - 2, y + 10), bg, -1)
+        count = saved_counts.get(action, 0)
+        key_hint = str(i + 1) if i < 9 else "-"
+        text = f"[{key_hint}] {action:<12} x{count}"
+        text_color = (255, 255, 0) if is_active else TEXT_COLOR
+        cv2.putText(frame, text, (sidebar_x, y),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.52, text_color, 1)
+
+    # ── Bottom controls bar ───────────────────────────────────────────────────
+    controls = "SPACE:Record  |  1-9:Action  |  L:Next  |  A:Auto  |  Q:Quit"
+    cv2.putText(frame, controls, (10, h - 12),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.46, TEXT_COLOR, 1, cv2.LINE_AA)
 
 
 # ── main ─────────────────────────────────────────────────────────────────────
 
+# ── main ─────────────────────────────────────────────────────────────────────
+
+# How many seconds to wait before auto-recording starts
+AUTO_DELAY_SEC = 2.0
+# Countdown seconds shown before recording begins
+COUNTDOWN_SEC = 3
+
+
+def _switch_label(idx, actions):
+    """Return (label, label_dir, saved) for a given action index."""
+    label = actions[idx]
+    label_dir = os.path.join(DATA_DIR, label)
+    os.makedirs(label_dir, exist_ok=True)
+    return label, label_dir
+
+
 def main():
     print("=" * 60)
     print("  ZERO CONTROLLER - DATA COLLECTION")
-    print(f"  Actions: {ACTIONS}")
+    print(f"  Actions ({len(ACTIONS)}): {ACTIONS}")
     print(f"  Sequence length: {SEQUENCE_LENGTH} frames")
+    print("=" * 60)
+    print("  Keys: 1-9 select action | SPACE record | A auto | L next | Q quit")
     print("=" * 60)
 
     ensure_pose_model(POSE_MODEL_PATH, POSE_MODEL_URL)
@@ -162,15 +202,26 @@ def main():
         sys.exit(1)
     print(f"[CAMERA] Backend: {backend}")
 
+    # Build saved-count map for all actions
+    saved_counts = {}
+    for action in ACTIONS:
+        d = os.path.join(DATA_DIR, action)
+        saved_counts[action] = _count_existing(d)
+        os.makedirs(d, exist_ok=True)
+
     # State
     label_idx = 0
-    label = ACTIONS[label_idx]
-    label_dir = os.path.join(DATA_DIR, label)
-    os.makedirs(label_dir, exist_ok=True)
-    saved = _count_existing(label_dir)
+    label, label_dir = _switch_label(label_idx, ACTIONS)
 
     recording = False
     buffer = []
+
+    auto_mode = False          # auto-records repeatedly after each save
+    auto_next_t = None         # time.time() when next auto-record should start
+
+    countdown = 0              # seconds remaining in pre-record countdown
+    countdown_end_t = None     # time.time() when countdown finishes
+
     prev_t = time.time()
     fps = 0.0
     frame_ts = 0
@@ -199,28 +250,53 @@ def main():
 
             landmarks = result.pose_landmarks[0] if result.pose_landmarks else None
 
+            # ── Countdown logic ───────────────────────────────────────────────
+            if countdown > 0 and countdown_end_t is not None:
+                remaining = countdown_end_t - time.time()
+                countdown = max(0, int(remaining) + 1)
+                if time.time() >= countdown_end_t:
+                    countdown = 0
+                    if landmarks is not None:
+                        recording = True
+                        buffer = []
+                        print(f"[REC] Recording '{label}' sample #{saved_counts[label]}...")
+                    else:
+                        print("[WARN] No pose at countdown end — skipping.")
+
+            # ── Auto-mode trigger ─────────────────────────────────────────────
+            if auto_mode and not recording and countdown == 0 and auto_next_t is not None:
+                if time.time() >= auto_next_t:
+                    auto_next_t = None
+                    countdown = COUNTDOWN_SEC
+                    countdown_end_t = time.time() + COUNTDOWN_SEC
+
             # Draw skeleton
             if landmarks:
                 _draw_skeleton(frame, landmarks)
 
-            # Recording logic
+            # ── Recording logic ───────────────────────────────────────────────
             if recording and landmarks:
                 buffer.append(_landmarks_to_array(landmarks))
                 if len(buffer) >= SEQUENCE_LENGTH:
-                    # Save sequence
-                    seq = np.stack(buffer, axis=0)  # (SEQUENCE_LENGTH, 33, 4)
-                    sample_path = os.path.join(label_dir, f"sample_{saved:04d}.npy")
+                    seq = np.stack(buffer, axis=0)   # (SEQUENCE_LENGTH, 33, 4)
+                    n = saved_counts[label]
+                    sample_path = os.path.join(label_dir, f"sample_{n:04d}.npy")
                     np.save(sample_path, seq)
-                    saved += 1
-                    print(f"[SAVED] {sample_path}  ({saved} total)")
+                    saved_counts[label] += 1
+                    print(f"[SAVED] {sample_path}  (total {saved_counts[label]} for '{label}')")
                     recording = False
                     buffer = []
+                    if auto_mode:
+                        auto_next_t = time.time() + AUTO_DELAY_SEC
 
-            # HUD
+            # ── HUD ───────────────────────────────────────────────────────────
             now = time.time()
             fps = 1.0 / max(now - prev_t, 1e-6)
             prev_t = now
-            _draw_collection_hud(frame, label, saved, recording, len(buffer), fps)
+            _draw_collection_hud(
+                frame, ACTIONS, label_idx, saved_counts,
+                recording, len(buffer), fps, auto_mode, countdown
+            )
 
             try:
                 cv2.imshow("ZeroController - Collect Data", frame)
@@ -230,25 +306,49 @@ def main():
 
             key = cv2.waitKey(1) & 0xFF
 
+            # ── Key handling ──────────────────────────────────────────────────
             if key == ord("q"):
                 break
 
             elif key == ord(" "):
-                if not recording:
+                if not recording and countdown == 0:
                     if landmarks is None:
-                        print("[WARN] No pose detected — stand in view before recording.")
+                        print("[WARN] No pose detected — stand in view first.")
                     else:
-                        recording = True
-                        buffer = []
-                        print(f"[REC] Recording {label} sample #{saved}...")
+                        countdown = COUNTDOWN_SEC
+                        countdown_end_t = time.time() + COUNTDOWN_SEC
+                        print(f"[COUNTDOWN] {COUNTDOWN_SEC}s before recording '{label}'...")
 
             elif key == ord("l"):
+                # Cycle to next label
                 label_idx = (label_idx + 1) % len(ACTIONS)
-                label = ACTIONS[label_idx]
-                label_dir = os.path.join(DATA_DIR, label)
-                os.makedirs(label_dir, exist_ok=True)
-                saved = _count_existing(label_dir)
-                print(f"[LABEL] Switched to: {label}  ({saved} existing)")
+                label, label_dir = _switch_label(label_idx, ACTIONS)
+                recording = False
+                buffer = []
+                countdown = 0
+                auto_next_t = None
+                print(f"[LABEL] → {label}  ({saved_counts[label]} existing)")
+
+            elif key == ord("a"):
+                auto_mode = not auto_mode
+                if auto_mode:
+                    print("[AUTO] Auto-mode ON — will record repeatedly with countdown.")
+                    if landmarks is not None and not recording and countdown == 0:
+                        auto_next_t = time.time() + AUTO_DELAY_SEC
+                else:
+                    print("[AUTO] Auto-mode OFF.")
+                    auto_next_t = None
+
+            elif ord("1") <= key <= ord("9"):
+                idx = key - ord("1")   # '1' → 0, '2' → 1, …
+                if idx < len(ACTIONS):
+                    label_idx = idx
+                    label, label_dir = _switch_label(label_idx, ACTIONS)
+                    recording = False
+                    buffer = []
+                    countdown = 0
+                    auto_next_t = None
+                    print(f"[LABEL] → {label}  ({saved_counts[label]} existing)")
 
     except KeyboardInterrupt:
         pass
@@ -257,7 +357,9 @@ def main():
         cv2.destroyAllWindows()
         landmarker.close()
 
-    print("[DONE] Data collection finished.")
+    print("\n[DONE] Collection summary:")
+    for action in ACTIONS:
+        print(f"  {action:<12} : {saved_counts[action]} samples")
 
 
 if __name__ == "__main__":

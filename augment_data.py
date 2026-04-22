@@ -1,9 +1,8 @@
-"""Mirror right_punch samples to create left_punch data.
+"""Mirror right-side action samples to generate matching left-side data.
 
-For each .npy in data/raw/right_punch/:
-  1. Flip x-coordinates  (x → 1.0 - x)
-  2. Swap left/right landmark indices
-  3. Save to data/raw/left_punch/
+For each action pair in _MIRROR_PAIRS, every .npy in data/raw/right_*/
+is flipped (x → 1-x) and left↔right landmark indices are swapped, then
+saved to the corresponding data/raw/left_*/ directory.
 
 Run:  python augment_data.py
 """
@@ -51,36 +50,50 @@ def mirror_sequence(seq):
     return mirrored
 
 
-def main():
-    src_dir = os.path.join(DATA_DIR, "right_punch")
-    dst_dir = os.path.join(DATA_DIR, "left_punch")
+# Action pairs to mirror: (source, destination)
+_MIRROR_PAIRS = [
+    ("right_punch", "left_punch"),
+    ("right_kick",  "left_kick"),
+]
+
+
+def _augment_pair(src_action, dst_action):
+    """Mirror all .npy samples from src_action into dst_action."""
+    src_dir = os.path.join(DATA_DIR, src_action)
+    dst_dir = os.path.join(DATA_DIR, dst_action)
 
     if not os.path.isdir(src_dir):
-        print(f"[ERROR] Source directory not found: {src_dir}")
-        sys.exit(1)
+        print(f"[SKIP] {src_action}: directory not found.")
+        return 0
 
     files = sorted(f for f in os.listdir(src_dir) if f.endswith(".npy"))
     if not files:
-        print(f"[ERROR] No .npy files in {src_dir}")
-        sys.exit(1)
+        print(f"[SKIP] {src_action}: no .npy files found.")
+        return 0
 
     os.makedirs(dst_dir, exist_ok=True)
-    existing = sum(1 for f in os.listdir(dst_dir) if f.endswith(".npy"))
-
     created = 0
     for fname in files:
-        dst_name = f"mirror_{fname}"
-        dst_path = os.path.join(dst_dir, dst_name)
+        dst_path = os.path.join(dst_dir, f"mirror_{fname}")
         if os.path.exists(dst_path):
             continue
-
         seq = np.load(os.path.join(src_dir, fname))
-        mirrored = mirror_sequence(seq)
-        np.save(dst_path, mirrored)
+        np.save(dst_path, mirror_sequence(seq))
         created += 1
 
-    total = existing + created
-    print(f"[DONE] {created} new left_punch samples created ({total} total in {dst_dir})")
+    print(f"[AUG] {src_action} → {dst_action}:  {created} new  "
+          f"/ {len(files)} source samples")
+    return created
+
+
+def main():
+    print("=" * 60)
+    print("  ZERO CONTROLLER - DATA AUGMENTATION (Mirror L↔R)")
+    print("=" * 60)
+    total = 0
+    for src, dst in _MIRROR_PAIRS:
+        total += _augment_pair(src, dst)
+    print(f"[DONE] {total} mirrored sample(s) created.")
 
 
 if __name__ == "__main__":
