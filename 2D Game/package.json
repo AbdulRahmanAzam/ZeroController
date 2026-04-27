@@ -1,0 +1,44 @@
+{
+  "name": "fighter-arena-2d",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "2D Fighting Game with React + TypeScript",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "framer-motion": "^11.15.0",
+    "howler": "^2.2.4",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/howler": "^2.2.12",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.6",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.18.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.4.0",
+    "sharp": "^0.34.5",
+    "typescript": "~5.7.3",
+    "typescript-eslint": "^8.58.0",
+    "vite": "^6.0.11"
+  },
+  "keywords": [
+    "game",
+    "fighting",
+    "2d",
+    "react",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT"
+}
