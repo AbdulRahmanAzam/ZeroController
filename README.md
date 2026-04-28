@@ -26,6 +26,28 @@ Run (examples)
 - Train classifier: `python train_model.py`
 - Run live detector with trained model: `python run_model.py`
 
+Run with the 2D game
+1. From the project root, start the pose bridge and live classifier:
+
+```bash
+python run_model.py
+```
+
+This opens the camera preview and also serves Player 1 actions at
+`http://localhost:8000` and `ws://localhost:8000/ws/pose/1`.
+
+2. In another terminal, start the game:
+
+```bash
+cd "2D Game"
+npm install
+npm run dev
+```
+
+3. In the game menu, choose a match mode, then choose either `KEYBOARD` or
+`ZERO CONTROLLER` for Player 1. If `ZERO CONTROLLER` is selected, the arena
+wait screen will stay locked until `run_model.py` is connected.
+
 Files (brief, bullet points)
 - `config.py`: global constants — camera options, MediaPipe model path/URL,
   data paths, sequence length, and training hyperparameters.

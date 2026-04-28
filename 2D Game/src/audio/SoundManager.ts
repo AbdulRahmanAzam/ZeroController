@@ -65,7 +65,6 @@ class SoundManagerClass {
     // Register all sound effects
     this.registerSounds();
     this.isInitialized = true;
-    console.log('🔊 SoundManager initialized');
   }
 
   private registerSounds(): void {
@@ -146,10 +145,8 @@ class SoundManagerClass {
         volume: (config.volume ?? 0.5) * this.sfxVolume,
         loop: config.loop ?? false,
         rate: config.rate ?? 1.0,
-        preload: true,
-        onloaderror: (_id, error) => {
-          console.warn(`Failed to load sound ${config.src[0]}:`, error);
-        },
+        preload: false,
+        onloaderror: () => undefined,
       }),
       config,
     }));
@@ -161,10 +158,10 @@ class SoundManagerClass {
    */
   public play(category: SoundCategory, options?: { volume?: number; rate?: number }): number | null {
     if (this.isMuted) return null;
+    if (!this.isInitialized) this.init();
 
     const variants = this.sounds.get(category);
     if (!variants || variants.length === 0) {
-      console.warn(`Sound category '${category}' not found`);
       return null;
     }
 
@@ -180,7 +177,11 @@ class SoundManagerClass {
       sound.rate(options.rate);
     }
 
-    return sound.play();
+    try {
+      return sound.play();
+    } catch {
+      return null;
+    }
   }
 
   /**

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SoundManager } from '../audio/SoundManager';
 import { useGameStore } from '../store/gameStore';
-import type { AIDifficulty } from '../types/game';
+import type { AIDifficulty, GameMode, PlayerOneControlMode } from '../types/game';
 
 interface MainMenuProps {
   onStartGame: () => void;
@@ -15,12 +15,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   onOpenSettings,
   onOpenHowToPlay,
 }) => {
-  const { setGameMode, setAIDifficulty } = useGameStore();
+  const { setGameMode, setAIDifficulty, setPlayer1ControlMode } = useGameStore();
 
   // 'mode'       → pick VS PLAYER or VS AI
   // 'difficulty' → pick Easy / Medium / Hard (VS AI only)
-  type MenuStep = 'mode' | 'difficulty';
+  // 'controller' → pick Player 1 keyboard or ZeroController camera input
+  type MenuStep = 'mode' | 'difficulty' | 'controller';
   const [step, setStep] = useState<MenuStep>('mode');
+  const [selectedMode, setSelectedMode] = useState<GameMode>('vs_player');
 
   const playSelectSound = () => SoundManager.play('menuSelect');
   const playHoverSound  = () => SoundManager.play('menuHover');
@@ -28,24 +30,32 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const handleVsPlayer = () => {
     playSelectSound();
     setGameMode('vs_player');
-    onStartGame();
+    setSelectedMode('vs_player');
+    setStep('controller');
   };
 
   const handleVsAI = () => {
     playSelectSound();
     setGameMode('vs_ai');
+    setSelectedMode('vs_ai');
     setStep('difficulty');
   };
 
   const handleDifficulty = (diff: AIDifficulty) => {
     playSelectSound();
     setAIDifficulty(diff);
+    setStep('controller');
+  };
+
+  const handleController = (mode: PlayerOneControlMode) => {
+    playSelectSound();
+    setPlayer1ControlMode(mode);
     onStartGame();
   };
 
   const handleBack = () => {
     playSelectSound();
-    setStep('mode');
+    setStep(step === 'controller' && selectedMode === 'vs_ai' ? 'difficulty' : 'mode');
   };
 
   return (
@@ -138,7 +148,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         >
           <div style={{ width: 80, height: 1, background: 'linear-gradient(90deg, transparent, rgba(231,76,60,0.6))' }} />
           <span style={{ color: '#e74c3c', fontFamily: "'Orbitron', sans-serif", fontSize: 10, letterSpacing: 5 }}>
-            {step === 'mode' ? 'SELECT MODE' : 'SELECT DIFFICULTY'}
+            {step === 'mode' ? 'SELECT MODE' : step === 'difficulty' ? 'SELECT DIFFICULTY' : 'SELECT CONTROLLER'}
           </span>
           <div style={{ width: 80, height: 1, background: 'linear-gradient(90deg, rgba(231,76,60,0.6), transparent)' }} />
         </motion.div>
@@ -160,7 +170,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               <FightButton label="HOW TO PLAY" sublabel="" icon="📖" onClick={() => { playSelectSound(); onOpenHowToPlay(); }} onHover={playHoverSound} small />
               <FightButton label="SETTINGS"    sublabel="" icon="⚙"  onClick={() => { playSelectSound(); onOpenSettings(); }}  onHover={playHoverSound} small />
             </motion.div>
-          ) : (
+          ) : step === 'difficulty' ? (
             <motion.div
               key="difficulty"
               initial={{ opacity: 0, x: 40 }}
@@ -172,6 +182,31 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               <TierButton label="EASY"   sub="SLOW REACTIONS · MOSTLY RANDOM"        tier="easy"   onClick={() => handleDifficulty('easy')}   onHover={playHoverSound} />
               <TierButton label="MEDIUM" sub="REACTS TO ATTACKS · PUNISHES MISTAKES"  tier="medium" onClick={() => handleDifficulty('medium')} onHover={playHoverSound} />
               <TierButton label="HARD"   sub="NEARLY IMPOSSIBLE · BLOCKS EVERYTHING"  tier="hard"   onClick={() => handleDifficulty('hard')}   onHover={playHoverSound} />
+              <motion.button
+                whileHover={{ x: -5 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleBack}
+                style={{
+                  background: 'transparent', border: 'none', color: '#555',
+                  fontSize: 12, fontFamily: "'Orbitron', sans-serif",
+                  letterSpacing: 3, cursor: 'pointer', marginTop: 6,
+                  padding: '8px 0', outline: 'none', textAlign: 'left',
+                }}
+              >
+                ← BACK
+              </motion.button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="controller"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -40 }}
+              transition={{ duration: 0.18 }}
+              style={{ display: 'flex', flexDirection: 'column', gap: 10, width: 440 }}
+            >
+              <FightButton label="KEYBOARD" sublabel="PLAYER 1 USES WASD + ATTACK KEYS" icon="⌨" onClick={() => handleController('keyboard')} onHover={playHoverSound} />
+              <FightButton label="ZERO CONTROLLER" sublabel="PLAYER 1 USES LIVE CAMERA ACTIONS" icon="◉" onClick={() => handleController('zero_controller')} onHover={playHoverSound} primary />
               <motion.button
                 whileHover={{ x: -5 }}
                 whileTap={{ scale: 0.97 }}

@@ -4,7 +4,7 @@ import { Game } from './components/Game';
 import { MainMenu } from './components/MainMenu';
 import { SettingsMenu } from './components/SettingsMenu';
 import { HowToPlay } from './components/HowToPlay';
-import { preloadSprites } from './components/SpriteSheet';
+import { preloadSprites } from './components/spriteAssets';
 import './App.css';
 
 type AppScreen = 'menu' | 'game' | 'settings' | 'howToPlay';

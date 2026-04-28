@@ -2,7 +2,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SoundManager } from '../audio/SoundManager';
 import { VictoryScreen } from './VictoryScreen';
-import type { MatchHistory } from '../types/game';
+import type { MatchHistory, PlayerOneControlMode } from '../types/game';
+import type { PoseInputStatus } from '../hooks/usePoseInput';
 
 interface EnhancedGameUIProps {
   gameStatus: 'waiting' | 'playing' | 'paused' | 'round_end' | 'match_end';
@@ -17,6 +18,8 @@ interface EnhancedGameUIProps {
   onGoToMenu: () => void;
   onNextRound?: () => void;
   matchHistory?: MatchHistory;
+  player1ControlMode?: PlayerOneControlMode;
+  poseStatus?: PoseInputStatus;
 }
 
 // Wrapper for button click with sound
@@ -36,7 +39,17 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
   onResetGame,
   onGoToMenu,
   matchHistory,
+  player1ControlMode = 'keyboard',
+  poseStatus,
 }) => {
+  const zeroControllerSelected = player1ControlMode === 'zero_controller';
+  const poseConnected = poseStatus?.connection === 'connected';
+  const poseProgress = poseStatus?.sequenceLength
+    ? Math.min(1, (poseStatus.bufferFill ?? 0) / poseStatus.sequenceLength)
+    : 0;
+  const poseStatusText = poseStatus?.message
+    ?? (poseConnected ? 'ZeroController bridge connected.' : 'Run python run_model.py before starting.');
+  const canStart = !zeroControllerSelected || poseConnected;
 
   const renderOverlay = () => {
     if (gameStatus === 'waiting') {
@@ -151,17 +164,17 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
               }}
             />
 
-            <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ position: 'relative', zIndex: 1, width: '100%' }}>
               {/* Main title */}
               <motion.div
                 animate={{ opacity: [0.8, 1, 0.8] }}
                 transition={{ duration: 2, repeat: Infinity }}
                 style={{
-                  fontSize: 14,
+                  fontSize: 'clamp(9px, 1.2vh, 14px)',
                   fontWeight: 900,
                   color: '#e74c3c',
                   letterSpacing: 4,
-                  marginBottom: 15,
+                  marginBottom: 'clamp(6px, 1vh, 15px)',
                   textTransform: 'uppercase',
                   fontFamily: 'Bebas Neue, Orbitron, sans-serif',
                 }}
@@ -179,14 +192,15 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
                 style={{
-                  fontSize: 56,
-                  marginBottom: 8,
+                  fontSize: 'clamp(26px, 5.5vh, 56px)',
+                  marginBottom: 'clamp(4px, 0.8vh, 8px)',
                   color: '#fff',
                   fontWeight: 900,
                   fontFamily: 'Bebas Neue, Orbitron, sans-serif',
                   letterSpacing: 3,
                   WebkitTextStroke: '2px rgba(0, 0, 0, 0.6)',
                   textTransform: 'uppercase',
+                  lineHeight: 1,
                 }}
               >
                 ⚔️ BATTLE ARENA ⚔️
@@ -197,8 +211,8 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
                 style={{
-                  fontSize: 16,
-                  marginBottom: 35,
+                  fontSize: 'clamp(10px, 1.4vh, 16px)',
+                  marginBottom: 'clamp(10px, 2vh, 35px)',
                   color: '#ecf0f1',
                   letterSpacing: 4,
                   fontFamily: 'Bebas Neue, Orbitron, sans-serif',
@@ -211,16 +225,63 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
                 2-PLAYER FIGHTING GAME
               </motion.p>
 
+              {zeroControllerSelected && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35 }}
+                  style={zeroControllerPanelStyle}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, minWidth: 0 }}>
+                    <div style={{ textAlign: 'left', minWidth: 0, flex: 1 }}>
+                      <div style={{ color: '#4a9eff', fontFamily: 'Orbitron, sans-serif', fontSize: 11, letterSpacing: 3, marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        ZERO CONTROLLER INPUT
+                      </div>
+                      <div style={{ color: '#f5f5f5', fontSize: 13, fontFamily: 'monospace', letterSpacing: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        python run_model.py
+                      </div>
+                      <div style={{ color: poseConnected ? '#8ff0b2' : '#ffb36b', fontSize: 12, marginTop: 9, lineHeight: 1.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {poseStatusText}
+                      </div>
+                    </div>
+                    <div style={{ minWidth: 118, flexShrink: 0, textAlign: 'right' }}>
+                      <div style={{ color: poseConnected ? '#2ecc71' : '#f39c12', fontWeight: 900, fontFamily: 'Bebas Neue, sans-serif', fontSize: 24, letterSpacing: 3, whiteSpace: 'nowrap' }}>
+                        {poseConnected ? 'READY' : 'WAIT'}
+                      </div>
+                      <div style={{ color: '#777', fontSize: 11, fontFamily: 'monospace', marginTop: 4, whiteSpace: 'nowrap' }}>
+                        {(poseStatus?.action ?? 'idle').replace('_', ' ')} · {Math.round((poseStatus?.confidence ?? 0) * 100)}%
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ height: 5, marginTop: 14, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                    <motion.div
+                      animate={{ width: `${Math.round(poseProgress * 100)}%` }}
+                      style={{ height: '100%', background: poseConnected ? 'linear-gradient(90deg, #3498db, #2ecc71)' : 'linear-gradient(90deg, #7f8c8d, #f39c12)' }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+
               {/* Start button with epic styling */}
               <motion.button
-                whileHover={{ scale: 1.08, boxShadow: '0 0 60px rgba(231, 76, 60, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.1)' }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={canStart ? { scale: 1.08, boxShadow: '0 0 60px rgba(231, 76, 60, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.1)' } : {}}
+                whileTap={canStart ? { scale: 0.95 } : {}}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                onClick={() => { playSelectSound(); onStartGame(); }}
-                onHoverStart={playHoverSound}
-                style={startButtonStyle}
+                onClick={() => {
+                  if (!canStart) return;
+                  playSelectSound();
+                  onStartGame();
+                }}
+                onHoverStart={canStart ? playHoverSound : undefined}
+                disabled={!canStart}
+                style={{
+                  ...startButtonStyle,
+                  opacity: canStart ? 1 : 0.55,
+                  cursor: canStart ? 'pointer' : 'not-allowed',
+                  filter: canStart ? 'none' : 'grayscale(0.45)',
+                }}
               >
                 <motion.span
                   animate={{ opacity: [1, 0.8, 1] }}
@@ -229,7 +290,7 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
                 >
                   ▶️
                 </motion.span>
-                FIGHT NOW
+                {canStart ? 'FIGHT NOW' : 'RUN MODEL FIRST'}
                 <motion.span
                   animate={{ opacity: [1, 0.8, 1] }}
                   transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
@@ -240,24 +301,36 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
               </motion.button>
 
               {/* Player cards */}
-              <div style={{ marginTop: 45, display: 'flex', gap: 50 }}>
+              <div style={{ marginTop: 'clamp(10px, 2.2vh, 45px)', display: 'flex', gap: 'clamp(14px, 3vw, 50px)', width: '100%', minWidth: 0 }}>
                 <motion.div
                   initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 }}
                   style={{ ...playerCardStyle, borderTopColor: '#4a9eff' }}
                 >
-                  <div style={{ fontSize: 24, marginBottom: 12 }}>🔵</div>
-                  <h3 style={{ color: '#4a9eff', marginBottom: 18, fontSize: 20, fontWeight: 900, letterSpacing: 2 }}>
+                  <div style={{ fontSize: 'clamp(16px, 2.2vh, 24px)', marginBottom: 'clamp(6px, 1vh, 12px)' }}>🔵</div>
+                  <h3 style={{ color: '#4a9eff', marginBottom: 'clamp(8px, 1.2vh, 18px)', fontSize: 'clamp(13px, 1.8vh, 20px)', fontWeight: 900, letterSpacing: 2 }}>
                     PLAYER 1
                   </h3>
-                  <div style={controlGridStyle}>
-                    <ControlKey label="Jump" keys={['W']} />
-                    <ControlKey label="Move" keys={['A', 'D']} />
-                    <ControlKey label="Block" keys={['S']} />
-                    <ControlKey label="Punch" keys={['Q', 'E']} />
-                    <ControlKey label="Kick" keys={['Z', 'C']} />
-                  </div>
+                  {zeroControllerSelected ? (
+                    <div style={{ color: '#b9d9ff', fontSize: 12, lineHeight: 1.6, textAlign: 'left' }}>
+                      <div style={{ fontFamily: 'Orbitron, sans-serif', letterSpacing: 2, color: poseConnected ? '#2ecc71' : '#f39c12', marginBottom: 8 }}>
+                        {poseConnected ? 'CAMERA ONLINE' : 'BRIDGE OFFLINE'}
+                      </div>
+                      <div style={{ color: '#777' }}>Live actions drive Player 1.</div>
+                      <div style={{ color: '#999', marginTop: 8, fontFamily: 'monospace' }}>
+                        {poseStatus?.bridgeStatus ?? 'waiting'}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={controlGridStyle}>
+                      <ControlKey label="Jump" keys={['W']} />
+                      <ControlKey label="Move" keys={['A', 'D']} />
+                      <ControlKey label="Block" keys={['S']} />
+                      <ControlKey label="Punch" keys={['Q', 'E']} />
+                      <ControlKey label="Kick" keys={['Z', 'C']} />
+                    </div>
+                  )}
                 </motion.div>
 
                 <motion.div
@@ -266,8 +339,8 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
                   transition={{ delay: 0.6 }}
                   style={{ ...playerCardStyle, borderTopColor: '#e74c3c' }}
                 >
-                  <div style={{ fontSize: 24, marginBottom: 12 }}>🔴</div>
-                  <h3 style={{ color: '#e74c3c', marginBottom: 18, fontSize: 20, fontWeight: 900, letterSpacing: 2 }}>
+                  <div style={{ fontSize: 'clamp(16px, 2.2vh, 24px)', marginBottom: 'clamp(6px, 1vh, 12px)' }}>🔴</div>
+                  <h3 style={{ color: '#e74c3c', marginBottom: 'clamp(8px, 1.2vh, 18px)', fontSize: 'clamp(13px, 1.8vh, 20px)', fontWeight: 900, letterSpacing: 2 }}>
                     PLAYER 2
                   </h3>
                   <div style={controlGridStyle}>
@@ -438,7 +511,7 @@ const pauseModalStyle: React.CSSProperties = {
 
 const modalStyle: React.CSSProperties = {
   background: 'linear-gradient(180deg, rgba(20, 8, 8, 0.99) 0%, rgba(12, 6, 6, 0.99) 50%, rgba(8, 4, 4, 0.99) 100%)',
-  padding: '60px 70px',
+  padding: 'clamp(14px, 3vh, 60px) clamp(18px, 4vw, 70px)',
   borderRadius: 0,
   textAlign: 'center',
   color: '#fff',
@@ -450,14 +523,18 @@ const modalStyle: React.CSSProperties = {
   `,
   position: 'relative',
   overflow: 'hidden',
-  maxWidth: '90vw',
-  maxHeight: '90vh',
-  overflowY: 'auto' as const,
+  width: '90vw',
+  maxWidth: 900,
+  minWidth: 480,
+  maxHeight: '94vh',
+  display: 'flex',
+  flexDirection: 'column' as const,
+  alignItems: 'center',
 };
 
 const startButtonStyle: React.CSSProperties = {
-  padding: '20px 80px',
-  fontSize: 28,
+  padding: 'clamp(10px, 1.8vh, 20px) clamp(28px, 6vw, 80px)',
+  fontSize: 'clamp(16px, 2.5vh, 28px)',
   fontWeight: 900,
   background: 'linear-gradient(180deg, #e74c3c 0%, #c0392b 50%, #a93226 100%)',
   color: '#fff',
@@ -477,10 +554,22 @@ const startButtonStyle: React.CSSProperties = {
   WebkitTextStroke: '1px rgba(0, 0, 0, 0.4)',
 };
 
+const zeroControllerPanelStyle: React.CSSProperties = {
+  margin: '0 auto clamp(10px, 1.6vh, 24px)',
+  width: 'min(560px, 100%)',
+  flexShrink: 0,
+  padding: 'clamp(10px, 1.5vh, 18px) 20px',
+  background: 'linear-gradient(108deg, rgba(11, 24, 34, 0.94) 0%, rgba(11, 8, 8, 0.94) 100%)',
+  border: '2px solid rgba(74, 158, 255, 0.45)',
+  boxShadow: '0 12px 32px rgba(0,0,0,0.45), inset 0 0 24px rgba(74,158,255,0.07)',
+  clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))',
+};
+
 const playerCardStyle: React.CSSProperties = {
   flex: 1,
+  minWidth: 0,
   textAlign: 'center',
-  padding: '25px 20px',
+  padding: 'clamp(10px, 1.8vh, 25px) clamp(10px, 1.5vw, 20px)',
   background: 'linear-gradient(180deg, rgba(20, 10, 5, 0.9) 0%, rgba(0, 0, 0, 0.5) 100%)',
   borderRadius: 0,
   border: '2px solid rgba(180, 60, 20, 0.25)',

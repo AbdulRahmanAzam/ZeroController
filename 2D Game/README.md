@@ -105,25 +105,34 @@ This game is designed to work with a camera-based pose detection system for the 
 
 ### Required Backend
 
-The game expects a WebSocket server at:
+The implemented ZeroController bridge is `run_model.py` in the project root.
+Start it before choosing ZeroController mode:
+
+```bash
+python run_model.py
 ```
+
+The game reads Player 1 actions from:
+```
+http://localhost:8000/pose/1
 ws://localhost:8000/ws/pose/{player_id}
 ```
 
-See [POSE_API_SPEC.md](./POSE_API_SPEC.md) for complete API documentation.
+The menu lets Player 1 choose either `KEYBOARD` or `ZERO CONTROLLER`. When
+`ZERO CONTROLLER` is selected, the battle screen shows the bridge status and
+waits for `run_model.py` before enabling the fight button.
 
 ### Recommended Tech Stack
 - **Pose Detection**: MediaPipe Pose, OpenPose, or PoseNet
 - **Backend**: FastAPI (Python) or Node.js
 - **ML Framework**: TensorFlow, PyTorch, or ONNX
 
-### Quick Backend Setup (Python Example)
+### Quick Backend Setup
 
 ```bash
-pip install fastapi uvicorn opencv-python mediapipe websockets
+pip install -r ../requirements.txt
+python ../run_model.py
 ```
-
-See API spec for example implementation.
 
 ---
 

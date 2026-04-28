@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { RoundStatistics } from '../types/game';
 import {
@@ -34,26 +34,45 @@ const ACTION_LABELS: Record<string, string> = {
 export const RoundSummary: React.FC<RoundSummaryProps> = ({ roundStats, onNextRound, isLastRound }) => {
   const loser = roundStats.winner === 'draw' ? null : roundStats.winner === 1 ? 2 : 1;
 
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [insights, setInsights] = useState<RecommendationInsights | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [mlActive, setMlActive] = useState(false);
+  const recommendationToken = useMemo(() => JSON.stringify({
+    roundNumber: roundStats.roundNumber,
+    loser,
+    winner: roundStats.winner,
+    finalHealth: roundStats.finalHealth,
+    totalDamageDealt: roundStats.totalDamageDealt,
+    attacksAttempted: roundStats.attacksAttempted,
+    attacksLanded: roundStats.attacksLanded,
+    highestCombo: roundStats.highestCombo,
+    blocksPerformed: roundStats.blocksPerformed,
+  }), [loser, roundStats]);
+
+  const [recommendationState, setRecommendationState] = useState<{
+    token: string;
+    recommendations: Recommendation[];
+    insights: RecommendationInsights | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!loser) return;
     let cancelled = false;
-    setLoading(true);
 
     getRecommendationsWithFallback(roundStats, loser).then(result => {
       if (cancelled) return;
-      setRecommendations(result.recommendations);
-      setInsights(result.insights);
-      setMlActive(result.insights !== null);
-      setLoading(false);
+      setRecommendationState({
+        token: recommendationToken,
+        recommendations: result.recommendations,
+        insights: result.insights,
+      });
     });
 
     return () => { cancelled = true; };
-  }, [roundStats, loser]);
+  }, [roundStats, loser, recommendationToken]);
+
+  const currentRecommendationState = recommendationState?.token === recommendationToken ? recommendationState : null;
+  const recommendations = currentRecommendationState?.recommendations ?? [];
+  const insights = currentRecommendationState?.insights ?? null;
+  const loading = loser !== null && currentRecommendationState === null;
+  const mlActive = insights !== null;
 
   // Allow Enter/Space to advance
   useEffect(() => {
