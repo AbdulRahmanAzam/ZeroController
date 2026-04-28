@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GameState, PlayerState, ActionType, ActionEvent, RoundStatistics, MatchHistory, AIDifficulty, GameMode } from '../types/game';
+import type { GameState, PlayerState, ActionType, ActionEvent, RoundStatistics, MatchHistory, AIDifficulty, GameMode, PlayerOneControlMode } from '../types/game';
 import { GAME_CONFIG, ANIMATIONS } from '../game/config';
 import { SoundManager } from '../audio/SoundManager';
 
@@ -40,8 +40,10 @@ interface GameStore extends GameState {
   // AI / game mode settings (persist across rounds and resets)
   gameMode: GameMode;
   aiDifficulty: AIDifficulty;
+  player1ControlMode: PlayerOneControlMode;
   setGameMode: (mode: GameMode) => void;
   setAIDifficulty: (difficulty: AIDifficulty) => void;
+  setPlayer1ControlMode: (mode: PlayerOneControlMode) => void;
   /** Unique ID for the current match — persists across rounds, cleared on reset */
   sessionId: string;
 
@@ -94,8 +96,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // AI settings — default to vs_player / medium
   gameMode: 'vs_player' as GameMode,
   aiDifficulty: 'medium' as AIDifficulty,
+  player1ControlMode: 'keyboard' as PlayerOneControlMode,
   setGameMode: (mode) => set({ gameMode: mode }),
   setAIDifficulty: (difficulty) => set({ aiDifficulty: difficulty }),
+  setPlayer1ControlMode: (mode) => set({ player1ControlMode: mode }),
   sessionId: '',
 
   // Actions
@@ -131,6 +135,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Preserve AI mode settings across resets
     gameMode: s.gameMode,
     aiDifficulty: s.aiDifficulty,
+    player1ControlMode: s.player1ControlMode,
   })),
 
   // Start next round (reset positions/health, keep scores)

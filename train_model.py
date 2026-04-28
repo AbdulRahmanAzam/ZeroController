@@ -499,16 +499,139 @@ def load_dataset(actions=None, model_type=None):
 
 
 def train_val_split(X, y, val_ratio=0.25, seed=42):
-    """Stratified-ish split for small datasets."""
-    random.seed(seed)
-    indices = list(range(len(y)))
-    random.shuffle(indices)
+    """True per-class stratified split.
 
-    val_count = max(1, int(len(y) * val_ratio))
-    val_idx = indices[:val_count]
-    train_idx = indices[val_count:]
+    For each class, val_ratio of its samples go to val and the rest to train.
+    This guarantees every class is equally represented in both sets, which is
+    critical with small datasets (~50 samples/class) where a random global
+    shuffle can accidentally put most of one class into val.
+    """
+    rng = np.random.default_rng(seed)
+    train_idx, val_idx = [], []
+
+    for cls in np.unique(y):
+        cls_idx = np.where(y == cls)[0]
+        rng.shuffle(cls_idx)
+        n_val = max(1, int(len(cls_idx) * val_ratio))
+        val_idx.extend(cls_idx[:n_val].tolist())
+        train_idx.extend(cls_idx[n_val:].tolist())
+
+    # Shuffle both sets so batches see mixed classes
+    rng.shuffle(train_idx := np.array(train_idx))
+    rng.shuffle(val_idx   := np.array(val_idx))
 
     return X[train_idx], y[train_idx], X[val_idx], y[val_idx]
+
+
+# ── Online augmentation ──────────────────────────────────────────────────────
+
+class AugmentedDataset(torch.utils.data.Dataset):
+    """Wrap a numpy (X, y) pair and apply stochastic augmentations each epoch.
+
+    Augmentations applied on the fly (ST-GCN channel-first tensors C×T×V):
+
+    1. Gaussian joint noise   — tiny random perturbations to each landmark
+       coordinate, simulating detector jitter and slight pose variation.
+       Keeps the action recognisable while making the model noise-robust.
+
+    2. Temporal crop + resize — randomly drop up to 20% of leading or
+       trailing frames, then linearly interpolate back to T frames. Forces
+       the model to recognise actions that start/end at different phases,
+       rather than relying on a fixed temporal alignment.
+
+    3. Random mirror flip     — flip x-coordinates and swap left/right joint
+       pairs. Doubles effective dataset for symmetric actions (punches, kicks).
+       Only applied to actions that exist in a symmetric pair so e.g. "jump"
+       and "block" are not artificially mirrored.
+
+    Augmentations are disabled at val time — always pass augment=False for
+    the validation dataset.
+    """
+
+    # MediaPipe left/right landmark index pairs — same as augment_data.py
+    _SWAP_PAIRS = [
+        (1, 4), (2, 5), (3, 6),
+        (7, 8), (9, 10),
+        (11, 12), (13, 14), (15, 16),
+        (17, 18), (19, 20), (21, 22),
+        (23, 24), (25, 26), (27, 28),
+        (29, 30), (31, 32),
+    ]
+    # Actions where left↔right mirror makes sense (both sides present in dataset)
+    _MIRROR_CLASSES = None   # filled lazily from ACTIONS in __init__
+
+    def __init__(self, X, y, augment=True,
+                 noise_std=0.005,
+                 crop_ratio=0.20,
+                 mirror_prob=0.5):
+        self.X          = torch.from_numpy(X)   # (N, C, T, V)
+        self.y          = torch.from_numpy(y)
+        self.augment    = augment
+        self.noise_std  = noise_std
+        self.crop_ratio = crop_ratio
+        self.mirror_prob= mirror_prob
+
+        # Determine which class indices are symmetric (both sides exist)
+        pairs = [("left_punch","right_punch"), ("left_kick","right_kick")]
+        sym = set()
+        for a, b in pairs:
+            if a in ACTIONS and b in ACTIONS:
+                sym.add(ACTIONS.index(a))
+                sym.add(ACTIONS.index(b))
+        self._sym_classes = sym
+
+    def __len__(self):
+        return len(self.y)
+
+    def __getitem__(self, idx):
+        x = self.X[idx].clone()   # (C, T, V)
+        label = self.y[idx]
+
+        if not self.augment:
+            return x, label
+
+        C, T, V = x.shape
+
+        # 1. Gaussian noise on position channels
+        if self.noise_std > 0:
+            x = x + torch.randn_like(x) * self.noise_std
+
+        # 2. Temporal crop: randomly shorten the sequence, then interpolate back
+        max_crop = max(1, int(T * self.crop_ratio))
+        crop = random.randint(0, max_crop)
+        if crop > 0:
+            start = random.randint(0, crop)
+            end   = T - (crop - start)
+            # x[:, start:end, :] is the cropped window; interpolate back to T frames.
+            # F.interpolate 'linear' mode needs 3D input (N, C, L), so flatten
+            # the spatial (C, V) axes into one before interpolating.
+            seg  = x[:, start:end, :]                      # (C, T', V)
+            Tp   = seg.shape[1]
+            seg  = seg.permute(0, 2, 1).reshape(C * V, Tp) # (C*V, T')
+            seg  = torch.nn.functional.interpolate(
+                seg.unsqueeze(0), size=T, mode='linear', align_corners=False
+            ).squeeze(0)                                   # (C*V, T)
+            x = seg.reshape(C, V, T).permute(0, 2, 1)     # (C, T, V)
+
+        # 3. Mirror flip — only for symmetric action pairs
+        if label.item() in self._sym_classes and random.random() < self.mirror_prob:
+            # Flip x-coordinate (channel 0 of position, channel 3 of velocity)
+            x[0] = 1.0 - x[0]
+            if C == 6:         # velocity stream present
+                x[3] = -x[3]  # flip velocity x too
+            # Swap left↔right joint indices along V dimension
+            for a, b in self._SWAP_PAIRS:
+                if a < V and b < V:
+                    x[:, :, a], x[:, :, b] = x[:, :, b].clone(), x[:, :, a].clone()
+            # Remap label to its mirror counterpart
+            action_name = ACTIONS[label.item()]
+            mirror_map  = {"left_punch": "right_punch", "right_punch": "left_punch",
+                           "left_kick":  "right_kick",  "right_kick":  "left_kick"}
+            if action_name in mirror_map and mirror_map[action_name] in ACTIONS:
+                label = torch.tensor(ACTIONS.index(mirror_map[action_name]),
+                                     dtype=label.dtype)
+
+        return x, label
 
 
 # ── Model resume / expand helpers ────────────────────────────────────────────
@@ -614,10 +737,10 @@ def main():
     X_train, y_train, X_val, y_val = train_val_split(X, y)
     print(f"[DATA] Train: {len(y_train)}  |  Val: {len(y_val)}")
 
-    train_ds = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(y_train))
-    val_ds = TensorDataset(torch.from_numpy(X_val), torch.from_numpy(y_val))
+    train_ds = AugmentedDataset(X_train, y_train, augment=(MODEL_TYPE == "stgcn"))
+    val_ds   = AugmentedDataset(X_val,   y_val,   augment=False)
     train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE)
+    val_loader   = DataLoader(val_ds,   batch_size=BATCH_SIZE)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[DEVICE] {device}")

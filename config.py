@@ -2,8 +2,8 @@
 
 # Camera settings
 CAMERA_INDEX = 0
-CAMERA_WIDTH = 1280
-CAMERA_HEIGHT = 720
+CAMERA_WIDTH = 640   # 640×480 is faster for MediaPipe than 1280×720 → higher real FPS
+CAMERA_HEIGHT = 480
 CAMERA_TARGET_FPS = 30
 CAMERA_BACKEND = "msmf"  # Preferred backend on Windows: msmf or dshow
 CAMERA_BUFFER_SIZE = 1
@@ -96,8 +96,8 @@ PREPROCESS_USE_VISIBILITY = True  # weight each joint's (x,y,z) by its visibilit
 # ── Inference / Game-control ─────────────────────────────────────────────────
 # Confidence gate: only emit a game action when softmax ≥ threshold for
 # ≥ STABLE_FRAMES consecutive frames. Kills flicker and accidental triggers.
-PREDICT_CONFIDENCE_THRESHOLD = 0.85
-PREDICT_STABLE_FRAMES = 3
+PREDICT_CONFIDENCE_THRESHOLD = 0.75  # was 0.85 — lower so valid poses aren't suppressed
+PREDICT_STABLE_FRAMES = 2             # was 3 — saves ~1 frame of gate delay
 # After a non-idle action triggers, wait this many frames before allowing
 # another non-idle trigger. Prevents the same punch from firing twice.
-PREDICT_TRIGGER_COOLDOWN = 10
+PREDICT_TRIGGER_COOLDOWN = 5          # was 10 — ~0.17 s at 30 FPS (vs 0.53 s before)

@@ -10,11 +10,13 @@ import { SpecialMoveIndicator } from './SpecialMoveIndicator';
 import { RoundSummary } from './RoundSummary';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { useKeyboardInput } from '../hooks/useKeyboardInput';
+import { usePoseInput } from '../hooks/usePoseInput';
 import { useAIInput } from '../hooks/useAIInput';
 import { useGameStore } from '../store/gameStore';
 import { SoundManager } from '../audio/SoundManager';
 import { sendSession } from '../services/analyticsService';
 import type { ActionType, RoundStatistics } from '../types/game';
+import type { PoseInputStatus } from '../hooks/usePoseInput';
 
 export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
   const {
@@ -33,6 +35,7 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
     matchHistory,
     gameMode,
     aiDifficulty,
+    player1ControlMode,
     startGame,
     pauseGame,
     resetGame,
@@ -67,7 +70,13 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
   const roundTimerRef = useRef<number>(0);
   const [showFightAnnouncement, setShowFightAnnouncement] = useState(false);
   const [announcementText, setAnnouncementText] = useState('');
+  const [poseStatus, setPoseStatus] = useState<PoseInputStatus>({
+    connection: 'idle',
+    action: 'idle',
+    confidence: 0,
+  });
   const prevGameStatus = useRef(gameStatus);
+  const isZeroControllerMode = player1ControlMode === 'zero_controller';
 
   // Initialize SoundManager on mount
   useEffect(() => {
@@ -140,6 +149,11 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
     setPlayerAction(input.playerId, input.action);
   }, [setPlayerAction, gameMode]);
 
+  const handlePoseInput = useCallback((input: { playerId: 1 | 2; action: ActionType }) => {
+    if (input.playerId !== 1 || gameStatus !== 'playing') return;
+    setPlayerAction(1, input.action);
+  }, [setPlayerAction, gameStatus]);
+
   // Handle input from AI (only for Player 2)
   const handleAIInput = useCallback((input: { playerId: 1 | 2; action: ActionType }) => {
     setPlayerAction(input.playerId, input.action);
@@ -149,6 +163,16 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
   useKeyboardInput({
     onInput: handleInput,
     enabled: gameStatus === 'playing',
+    player1Enabled: !isZeroControllerMode,
+    player2Enabled: gameMode === 'vs_player',
+  });
+
+  // ZeroController camera input hook (Player 1 only)
+  usePoseInput({
+    onInput: handlePoseInput,
+    enabled: isZeroControllerMode && (gameStatus === 'waiting' || gameStatus === 'playing'),
+    playerId: 1,
+    onStatus: setPoseStatus,
   });
 
   // AI input hook (P2 only in vs_ai mode)
@@ -535,6 +559,8 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
             onGoToMenu={handleGoToMenu}
             onNextRound={startNextRound}
             matchHistory={matchHistory}
+            player1ControlMode={player1ControlMode}
+            poseStatus={poseStatus}
           />
         </EnhancedArena>
       </motion.div>
@@ -567,7 +593,9 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
         <div style={{ textAlign: 'center' }}>
           <span style={{ color: '#3498db', fontWeight: 'bold' }}>PLAYER 1</span>
           <div style={{ marginTop: 5, fontFamily: 'monospace' }}>
-            W/A/S/D + Q/E (punch) + Z/C (kick)
+            {isZeroControllerMode
+              ? `ZeroController: ${poseStatus.connection.toUpperCase()} · ${poseStatus.action.replace('_', ' ')}`
+              : 'W/A/S/D + Q/E (punch) + Z/C (kick)'}
           </div>
         </div>
         <div style={{ textAlign: 'center' }}>

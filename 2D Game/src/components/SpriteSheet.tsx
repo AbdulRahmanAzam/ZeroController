@@ -1,77 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-
-// ---------------------------------------------------------------------------
-// Module-level caches — persist for the entire page lifetime.
-// Prevent re-fetching the atlas JSON and re-loading the image on every remount.
-// ---------------------------------------------------------------------------
-const atlasCache = new Map<string, SpriteAtlas>();
-const imageReadyCache = new Set<string>();
-
-/** All sprite assets used by the game. Keep in sync with EnhancedFighter paths. */
-const SPRITE_ASSETS = [
-  { atlas: '/sprites/player1/knight.json', image: '/sprites/player1/knight.png' },
-] as const;
-
-/**
- * Preload all sprite atlases and images into module-level caches.
- * Call this once at app startup (App.tsx) so sprites are always
- * ready before the game canvas mounts — eliminating the invisible-frame flicker.
- */
-export async function preloadSprites(): Promise<void> {
-  await Promise.all(
-    SPRITE_ASSETS.map(async ({ atlas, image }) => {
-      // Atlas JSON
-      if (!atlasCache.has(atlas)) {
-        try {
-          const data = await fetch(atlas).then(r => r.json()) as SpriteAtlas;
-          atlasCache.set(atlas, data);
-        } catch (e) {
-          console.warn('[SpriteSheet] Could not preload atlas:', atlas, e);
-        }
-      }
-      // Sprite image — force browser to cache it
-      if (!imageReadyCache.has(image)) {
-        await new Promise<void>(resolve => {
-          const img = new Image();
-          img.onload  = () => { imageReadyCache.add(image); resolve(); };
-          img.onerror = () => resolve(); // don't block app on a missing file
-          img.src = image;
-        });
-      }
-    }),
-  );
-}
-
-interface Frame {
-  filename: string;
-  frame: {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-  };
-  spriteSourceSize?: {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-  };
-  sourceSize: {
-    w: number;
-    h: number;
-  };
-}
-
-interface SpriteAtlas {
-  textures: Array<{
-    image: string;
-    size: {
-      w: number;
-      h: number;
-    };
-    frames: Frame[];
-  }>;
-}
+import { atlasCache, imageReadyCache, type Frame, type SpriteAtlas } from './spriteAssets';
 
 interface SpriteSheetProps {
   atlasPath: string;
@@ -105,15 +33,25 @@ export const SpriteSheet: React.FC<SpriteSheetProps> = ({
 
   // Load atlas JSON — skips the fetch if already in cache
   useEffect(() => {
+    let cancelled = false;
     const cached = atlasCache.get(atlasPath);
     if (cached) {
-      setAtlas(cached);
-      return;
+      queueMicrotask(() => {
+        if (!cancelled) setAtlas(cached);
+      });
+      return () => { cancelled = true; };
     }
     fetch(atlasPath)
       .then(res => res.json())
-      .then((data: SpriteAtlas) => { atlasCache.set(atlasPath, data); setAtlas(data); })
-      .catch(err => console.error('[SpriteSheet] Failed to load atlas:', err));
+      .then((data: SpriteAtlas) => {
+        atlasCache.set(atlasPath, data);
+        if (!cancelled) setAtlas(data);
+      })
+      .catch(err => {
+        if (!cancelled) console.error('[SpriteSheet] Failed to load atlas:', err);
+      });
+
+    return () => { cancelled = true; };
   }, [atlasPath]);
 
   // Get frames for current animation with improved fallback logic

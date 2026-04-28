@@ -88,7 +88,6 @@ function approachP1(state: GameState): ActionType {
 // ---------------------------------------------------------------------------
 function getEasyAction(
   state: GameState,
-  _refs: AIRefs,
 ): ActionType {
   const { player2: p2 } = state;
   const inRange = isInRange(state);
@@ -235,7 +234,7 @@ export function getAIAction(
 
   switch (difficulty) {
     case 'easy':
-      action = getEasyAction(state, refs);
+      action = getEasyAction(state);
       break;
     case 'medium':
       action = getMediumAction(state, refs);
