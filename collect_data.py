@@ -97,6 +97,26 @@ def _count_existing(label_dir):
     return sum(1 for f in os.listdir(label_dir) if f.endswith(".npy"))
 
 
+def _next_sample_index(label_dir):
+    """Return the next safe sample index (max existing index + 1).
+
+    Uses the actual numeric suffix of existing sample_XXXX.npy files so that
+    new recordings never overwrite existing ones, even when early samples are
+    missing or the numbering has gaps.
+    """
+    if not os.path.isdir(label_dir):
+        return 0
+    indices = []
+    for f in os.listdir(label_dir):
+        if f.startswith("sample_") and f.endswith(".npy"):
+            stem = f[len("sample_"):-len(".npy")]  # e.g. "0045"
+            try:
+                indices.append(int(stem))
+            except ValueError:
+                pass
+    return max(indices) + 1 if indices else 0
+
+
 def _resample_sequence(buffer, target_len):
     """Linearly resample a variable-length frame buffer to exactly target_len frames."""
     n = len(buffer)
@@ -220,11 +240,13 @@ def main():
         sys.exit(1)
     print(f"[CAMERA] Backend: {backend}")
 
-    # Build saved-count map for all actions
+    # Build saved-count map and next-index map for all actions
     saved_counts = {}
+    next_indices = {}  # next safe filename index (max existing + 1)
     for action in ACTIONS:
         d = os.path.join(DATA_DIR, action)
         saved_counts[action] = _count_existing(d)
+        next_indices[action] = _next_sample_index(d)
         os.makedirs(d, exist_ok=True)
 
     # State
@@ -287,7 +309,7 @@ def main():
                         buffer = []
                         rec_start_t = time.time()
                         # Open a video clip alongside the .npy file
-                        n = saved_counts[label]
+                        n = next_indices[label]
                         vid_path = os.path.join(label_dir, f"sample_{n:04d}.avi")
                         fourcc = cv2.VideoWriter_fourcc(*"MJPG")
                         video_writer = cv2.VideoWriter(
@@ -317,7 +339,7 @@ def main():
                 elapsed = time.time() - rec_start_t
                 if elapsed >= RECORD_DURATION_SEC:
                     seq = _resample_sequence(buffer, SEQUENCE_LENGTH)  # (SEQUENCE_LENGTH, 33, 4)
-                    n = saved_counts[label]
+                    n = next_indices[label]
                     sample_path = os.path.join(label_dir, f"sample_{n:04d}.npy")
                     np.save(sample_path, seq)
                     # Finalize the video clip
@@ -327,6 +349,7 @@ def main():
                         vid_path = os.path.join(label_dir, f"sample_{n:04d}.avi")
                         print(f"[VIDEO] Saved {vid_path}")
                     saved_counts[label] += 1
+                    next_indices[label] += 1
                     print(f"[SAVED] {sample_path}  ({len(buffer)} raw frames → {SEQUENCE_LENGTH} resampled, "
                           f"{elapsed:.2f}s)  total {saved_counts[label]} for '{label}'")
                     recording = False

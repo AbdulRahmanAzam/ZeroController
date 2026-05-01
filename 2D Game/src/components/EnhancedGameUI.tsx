@@ -257,7 +257,7 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
                     <motion.div
                       animate={{ width: `${Math.round(poseProgress * 100)}%` }}
                       style={{ height: '100%', background: poseConnected ? 'linear-gradient(90deg, #3498db, #2ecc71)' : 'linear-gradient(90deg, #7f8c8d, #f39c12)' }}
-                    />
+                    />1``
                   </div>
                 </motion.div>
               )}
