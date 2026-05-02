@@ -8,6 +8,7 @@ from config import (
     CAMERA_TARGET_FPS,
     CAMERA_BUFFER_SIZE,
     CAMERA_READ_WARMUP_FRAMES,
+    CAMERA_FOURCC,
 )
 
 
@@ -28,6 +29,11 @@ def open_camera(index, backend_name):
     else:
         cap = cv2.VideoCapture(index, flag)
 
+    if CAMERA_FOURCC:
+        try:
+            cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*CAMERA_FOURCC))
+        except Exception:
+            pass
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
     cap.set(cv2.CAP_PROP_FPS, CAMERA_TARGET_FPS)

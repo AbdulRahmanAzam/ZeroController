@@ -11,8 +11,10 @@ MODEL_TYPE = "lstm"   →  Vanilla LSTM baseline
 Run:  python train_model.py
 """
 
+import argparse
 import os
 import random
+import time
 
 import numpy as np
 import torch
@@ -40,6 +42,11 @@ from config import (
     TCN_KERNEL_SIZE,
     TCN_NUM_CHANNELS,
     TCN_NUM_LAYERS,
+    GRU_HIDDEN_SIZE,
+    GRU_NUM_LAYERS,
+    POSECNN_CHANNELS,
+    POSECNN_KERNEL_SIZE,
+    POSECNN_NUM_LAYERS,
 )
 
 
@@ -108,6 +115,92 @@ class ActionTCN(nn.Module):
         x = x.permute(0, 2, 1)    # → (batch, features, seq_len)  for Conv1d
         x = self.net(x)            # → (batch, channels, seq_len)
         x = x.mean(dim=2)          # global average pool over time
+        return self.fc(x)
+
+
+class ActionGRU(nn.Module):
+    """GRU classifier — lighter recurrent baseline than LSTM.
+
+    GRU has 2 gates (reset, update) vs LSTM's 4 (input, forget, output, cell).
+    Roughly 25% fewer parameters per layer at the same hidden size, faster
+    forward pass, and similar accuracy on small motion-classification sets.
+    Streaming-friendly: hidden state can be carried frame-by-frame at inference.
+    """
+    def __init__(self, input_size, hidden_size, num_layers, num_classes, dropout=0.0):
+        super().__init__()
+        self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True,
+                          dropout=dropout if num_layers > 1 else 0.0)
+        self.drop = nn.Dropout(dropout)
+        self.fc   = nn.Linear(hidden_size, num_classes)
+
+    def forward(self, x):
+        _, hn = self.gru(x)
+        return self.fc(self.drop(hn[-1]))
+
+
+class _DepthwiseSeparableCausalBlock(nn.Module):
+    """Causal depthwise-separable 1-D conv block with residual.
+
+    "Causal" = the kernel only looks at past frames (left-padded), so the model
+    can emit a prediction the moment a frame arrives without needing future
+    context. Depthwise-separable = depthwise conv per channel + pointwise 1x1
+    mix, which cuts parameters by roughly kernel_size× compared to a normal
+    Conv1d.
+    """
+    def __init__(self, in_ch, out_ch, kernel_size, dilation, dropout=0.1):
+        super().__init__()
+        self.kernel_size = kernel_size
+        self.dilation = dilation
+        # Left padding only → causal. Set padding=0 here, pad manually in forward.
+        self.depthwise = nn.Conv1d(in_ch, in_ch, kernel_size,
+                                   padding=0, dilation=dilation, groups=in_ch)
+        self.pointwise = nn.Conv1d(in_ch, out_ch, 1)
+        self.bn   = nn.BatchNorm1d(out_ch)
+        self.relu = nn.ReLU()
+        self.drop = nn.Dropout(dropout)
+        self.skip = nn.Conv1d(in_ch, out_ch, 1) if in_ch != out_ch else nn.Identity()
+
+    def forward(self, x):
+        pad_left = (self.kernel_size - 1) * self.dilation
+        padded = nn.functional.pad(x, (pad_left, 0))
+        out = self.depthwise(padded)
+        out = self.pointwise(out)
+        out = self.drop(self.relu(self.bn(out)))
+        return out + self.skip(x)
+
+
+class ActionPoseConv1D(nn.Module):
+    """Causal depthwise-separable 1-D CNN — fastest classifier in this repo.
+
+    Why this fits a fighting-game controller:
+      - Causal conv → no need to wait for future frames.
+      - Depthwise-separable → tiny parameter count (~10-20k) so the network
+        fits the small dataset without memorising it.
+      - Pure convolution → fully vectorised on CPU and GPU, lowest inference
+        latency of the architectures here.
+
+    Input layout matches LSTM/TCN: (B, T, F=132).
+    """
+    def __init__(self, input_size, channels, kernel_size, num_layers,
+                 num_classes, dropout=0.1):
+        super().__init__()
+        layers = []
+        in_ch = input_size
+        for i in range(num_layers):
+            layers.append(
+                _DepthwiseSeparableCausalBlock(
+                    in_ch, channels, kernel_size, 2 ** i, dropout
+                )
+            )
+            in_ch = channels
+        self.net = nn.Sequential(*layers)
+        self.fc  = nn.Linear(channels, num_classes)
+
+    def forward(self, x):
+        # x : (batch, seq_len, features)
+        x = x.permute(0, 2, 1)        # → (batch, features, seq_len)
+        x = self.net(x)
+        x = x[:, :, -1]               # last-frame feature (causal → already summarises history)
         return self.fc(x)
 
 
@@ -419,6 +512,25 @@ def build_model_from_ckpt(ckpt, num_classes=None):
             dropout      = ckpt.get("dropout",         DROPOUT),
         )
 
+    if mt == "gru":
+        return ActionGRU(
+            input_size  = ckpt["input_size"],
+            hidden_size = ckpt.get("gru_hidden_size", GRU_HIDDEN_SIZE),
+            num_layers  = ckpt.get("gru_num_layers",  GRU_NUM_LAYERS),
+            num_classes = nc,
+            dropout     = ckpt.get("dropout",         DROPOUT),
+        )
+
+    if mt == "poseconv1d":
+        return ActionPoseConv1D(
+            input_size   = ckpt["input_size"],
+            channels     = ckpt.get("posecnn_channels",    POSECNN_CHANNELS),
+            kernel_size  = ckpt.get("posecnn_kernel_size", POSECNN_KERNEL_SIZE),
+            num_layers   = ckpt.get("posecnn_num_layers",  POSECNN_NUM_LAYERS),
+            num_classes  = nc,
+            dropout      = ckpt.get("dropout",             DROPOUT),
+        )
+
     return ActionLSTM(
         input_size  = ckpt["input_size"],
         hidden_size = ckpt.get("hidden_size",  HIDDEN_SIZE),
@@ -454,15 +566,31 @@ def load_dataset(actions=None, model_type=None):
 
     X_list, y_list = [], []
 
+    # Sibling folder produced by simple_augment.py. Loaded if present so the
+    # training set transparently includes augments. Delete the folder to
+    # disable augmentation without changing any code.
+    augmented_root = os.path.join(os.path.dirname(DATA_DIR.rstrip(os.sep)), "augmented")
+
     for label_idx, action in enumerate(actions):
         action_dir = os.path.join(DATA_DIR, action)
         if not os.path.isdir(action_dir):
             print(f"[WARN] Missing directory: {action_dir}")
             continue
 
-        files = sorted(f for f in os.listdir(action_dir) if f.endswith(".npy"))
-        for fname in files:
-            seq = np.load(os.path.join(action_dir, fname))  # (30, 33, 4)
+        candidate_dirs = [action_dir]
+        aug_dir = os.path.join(augmented_root, action)
+        if os.path.isdir(aug_dir):
+            candidate_dirs.append(aug_dir)
+
+        files = []
+        for d in candidate_dirs:
+            for f in sorted(os.listdir(d)):
+                if f.endswith(".npy"):
+                    files.append(os.path.join(d, f))
+
+        for fpath in files:
+            fname = os.path.basename(fpath)
+            seq = np.load(fpath)  # (30, 33, 4)
             if seq.shape != (SEQUENCE_LENGTH, 33, 4):
                 print(f"[SKIP] {fname} has unexpected shape {seq.shape}")
                 continue
@@ -636,13 +764,13 @@ class AugmentedDataset(torch.utils.data.Dataset):
 
 # ── Model resume / expand helpers ────────────────────────────────────────────
 
-def _build_fresh(input_size, num_classes, device):
+def _build_fresh(input_size, num_classes, device, model_type=MODEL_TYPE):
     """Instantiate a brand-new model from current config settings.
 
-    `input_size` is used by LSTM / TCN (flat 132 features per frame) and
-    ignored by ST-GCN (which infers its shape from in_channels instead).
+    `input_size` is used by LSTM / TCN / GRU / PoseConv1D (flat 132 features
+    per frame) and ignored by ST-GCN (which infers shape from in_channels).
     """
-    if MODEL_TYPE == "stgcn":
+    if model_type == "stgcn":
         in_ch = 6 if STGCN_USE_VELOCITY else 3
         m = ActionSTGCN(
             in_channels = in_ch,
@@ -653,11 +781,21 @@ def _build_fresh(input_size, num_classes, device):
         )
         print(f"[MODEL] ActionSTGCN  in_ch={in_ch}  channels={STGCN_CHANNELS}  "
               f"temporal_k={STGCN_TEMPORAL_K}  dropout={DROPOUT}")
-    elif MODEL_TYPE == "tcn":
+    elif model_type == "tcn":
         m = ActionTCN(input_size, TCN_NUM_CHANNELS, TCN_KERNEL_SIZE,
                       TCN_NUM_LAYERS, num_classes, DROPOUT)
         print(f"[MODEL] ActionTCN  ch={TCN_NUM_CHANNELS}  k={TCN_KERNEL_SIZE}  "
               f"layers={TCN_NUM_LAYERS}  dropout={DROPOUT}")
+    elif model_type == "gru":
+        m = ActionGRU(input_size, GRU_HIDDEN_SIZE, GRU_NUM_LAYERS, num_classes, DROPOUT)
+        print(f"[MODEL] ActionGRU  hidden={GRU_HIDDEN_SIZE}  "
+              f"layers={GRU_NUM_LAYERS}  dropout={DROPOUT}")
+    elif model_type == "poseconv1d":
+        m = ActionPoseConv1D(input_size, POSECNN_CHANNELS, POSECNN_KERNEL_SIZE,
+                             POSECNN_NUM_LAYERS, num_classes, DROPOUT)
+        print(f"[MODEL] ActionPoseConv1D  ch={POSECNN_CHANNELS}  "
+              f"k={POSECNN_KERNEL_SIZE}  layers={POSECNN_NUM_LAYERS}  "
+              f"dropout={DROPOUT}")
     else:
         m = ActionLSTM(input_size, HIDDEN_SIZE, NUM_LSTM_LAYERS, num_classes, DROPOUT)
         print(f"[MODEL] ActionLSTM  hidden={HIDDEN_SIZE}  "
@@ -665,7 +803,7 @@ def _build_fresh(input_size, num_classes, device):
     return m.to(device)
 
 
-def _resume_or_build(input_size, device):
+def _resume_or_build(input_size, device, model_type=MODEL_TYPE, save_path=MODEL_SAVE_PATH):
     """Build model fresh, or resume / expand from an existing checkpoint.
 
     Three cases
@@ -675,12 +813,18 @@ def _resume_or_build(input_size, device):
     3. ACTIONS has new classes        → expand FC; backbone is preserved.
        Returns ``expanded=True`` so the caller can use differential LR.
     """
-    if not os.path.exists(MODEL_SAVE_PATH):
+    if not os.path.exists(save_path):
         print("[MODEL] No checkpoint — building from scratch.")
-        return _build_fresh(input_size, len(ACTIONS), device), False
+        return _build_fresh(input_size, len(ACTIONS), device, model_type), False
 
-    ckpt        = torch.load(MODEL_SAVE_PATH, map_location=device, weights_only=True)
+    ckpt        = torch.load(save_path, map_location=device, weights_only=True)
     old_actions = ckpt["actions"]
+
+    # Different architecture than the checkpoint at this path → start fresh.
+    if ckpt.get("model_type", "lstm") != model_type:
+        print(f"[MODEL] Checkpoint at {save_path} is {ckpt.get('model_type')} "
+              f"but current run is {model_type}. Building fresh.")
+        return _build_fresh(input_size, len(ACTIONS), device, model_type), False
 
     removed = [a for a in old_actions if a not in ACTIONS]
     new_act  = [a for a in ACTIONS     if a not in old_actions]
@@ -688,7 +832,7 @@ def _resume_or_build(input_size, device):
     if removed:
         print(f"[WARN] Checkpoint has actions not in config: {removed}")
         print("[WARN] Building fresh model to avoid class mismatch.")
-        return _build_fresh(input_size, len(ACTIONS), device), False
+        return _build_fresh(input_size, len(ACTIONS), device, model_type), False
 
     if not new_act:
         print(f"[RESUME] Continuing training  |  {len(old_actions)} action(s): {old_actions}")
@@ -726,18 +870,73 @@ def _resume_or_build(input_size, device):
 
 # ── Training ─────────────────────────────────────────────────────────────────
 
+def _parse_args():
+    p = argparse.ArgumentParser(description="Train an action classifier.")
+    p.add_argument("--model-type", choices=("stgcn", "tcn", "lstm", "gru", "poseconv1d"),
+                   default=None,
+                   help="Override MODEL_TYPE from config so several architectures "
+                        "can be trained without editing config.py.")
+    p.add_argument("--save-path", default=None,
+                   help="Override MODEL_SAVE_PATH. Defaults to "
+                        "models/action_classifier_<model_type>.pth when "
+                        "--model-type is given.")
+    p.add_argument("--bench", action="store_true",
+                   help="After training, measure single-sample inference latency on CPU.")
+    return p.parse_args()
+
+
+def _benchmark_inference(model, input_size, model_type, device, runs=200):
+    """Time one forward pass on CPU. Smaller is better; the game runs the model
+    once per camera frame, so this is the figure that matters at the controller."""
+    model.eval()
+    cpu = torch.device("cpu")
+    model_cpu = model.to(cpu)
+
+    if model_type == "stgcn":
+        x = torch.randn(1, input_size, SEQUENCE_LENGTH, 33)
+    else:
+        x = torch.randn(1, SEQUENCE_LENGTH, input_size)
+
+    with torch.no_grad():
+        for _ in range(20):
+            model_cpu(x)
+        t0 = time.perf_counter()
+        for _ in range(runs):
+            model_cpu(x)
+        elapsed = time.perf_counter() - t0
+
+    avg_ms = (elapsed / runs) * 1000.0
+    print(f"[BENCH] CPU inference: {avg_ms:.2f} ms/sample over {runs} runs")
+    model.to(device)
+    return avg_ms
+
+
 def main():
+    args = _parse_args()
+    model_type = (args.model_type or MODEL_TYPE).lower()
+    if args.save_path is not None:
+        save_path = args.save_path
+    elif args.model_type is not None:
+        save_path = os.path.join(
+            os.path.dirname(MODEL_SAVE_PATH) or "models",
+            f"action_classifier_{model_type}.pth",
+        )
+    else:
+        save_path = MODEL_SAVE_PATH
+
     print("=" * 60)
     print("  ZERO CONTROLLER - TRAIN ACTION CLASSIFIER")
+    print(f"  Model type: {model_type}")
+    print(f"  Save path : {save_path}")
     print("=" * 60)
 
-    X, y = load_dataset()
+    X, y = load_dataset(model_type=model_type)
     print(f"[DATA] Total samples: {len(y)}  |  Classes: {dict(zip(ACTIONS, np.bincount(y)))}")
 
     X_train, y_train, X_val, y_val = train_val_split(X, y)
     print(f"[DATA] Train: {len(y_train)}  |  Val: {len(y_val)}")
 
-    train_ds = AugmentedDataset(X_train, y_train, augment=(MODEL_TYPE == "stgcn"))
+    train_ds = AugmentedDataset(X_train, y_train, augment=(model_type == "stgcn"))
     val_ds   = AugmentedDataset(X_val,   y_val,   augment=False)
     train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
     val_loader   = DataLoader(val_ds,   batch_size=BATCH_SIZE)
@@ -750,11 +949,11 @@ def main():
     #   - ST-GCN    : number of input channels (3 positions, or 6 with velocity)
     # We store it in the checkpoint either way so `build_model_from_ckpt` can
     # reconstruct the model without needing the config file.
-    if MODEL_TYPE == "stgcn":
+    if model_type == "stgcn":
         input_size = 6 if STGCN_USE_VELOCITY else 3
     else:
         input_size = 33 * 4  # 132
-    model, expanded = _resume_or_build(input_size, device)
+    model, expanded = _resume_or_build(input_size, device, model_type, save_path)
 
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"[MODEL] Trainable parameters: {total_params:,}")
@@ -817,7 +1016,7 @@ def main():
 
         if val_acc >= best_val_acc:
             best_val_acc = val_acc
-            os.makedirs(os.path.dirname(MODEL_SAVE_PATH), exist_ok=True)
+            os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
             # Save every hyperparameter needed to rebuild the model later,
             # plus the preprocessing flags used at train time — that way
             # inference can replay the *exact* same pipeline.
@@ -825,7 +1024,7 @@ def main():
                 "model_state":     model.state_dict(),
                 "actions":         ACTIONS,
                 "input_size":      input_size,
-                "model_type":      MODEL_TYPE,
+                "model_type":      model_type,
                 # LSTM params
                 "hidden_size":     HIDDEN_SIZE,
                 "num_layers":      NUM_LSTM_LAYERS,
@@ -833,6 +1032,13 @@ def main():
                 "tcn_channels":    TCN_NUM_CHANNELS,
                 "tcn_kernel_size": TCN_KERNEL_SIZE,
                 "tcn_num_layers":  TCN_NUM_LAYERS,
+                # GRU params
+                "gru_hidden_size": GRU_HIDDEN_SIZE,
+                "gru_num_layers":  GRU_NUM_LAYERS,
+                # PoseConv1D params
+                "posecnn_channels":    POSECNN_CHANNELS,
+                "posecnn_kernel_size": POSECNN_KERNEL_SIZE,
+                "posecnn_num_layers":  POSECNN_NUM_LAYERS,
                 # ST-GCN params
                 "stgcn_in_channels":  6 if STGCN_USE_VELOCITY else 3,
                 "stgcn_channels":     list(STGCN_CHANNELS),
@@ -845,12 +1051,15 @@ def main():
                 # Generic
                 "dropout":         DROPOUT,
                 "sequence_length": SEQUENCE_LENGTH,
-            }, MODEL_SAVE_PATH)
+            }, save_path)
 
         scheduler.step()
 
     print(f"\n[DONE] Best val accuracy: {best_val_acc:.2%}")
-    print(f"[SAVED] {MODEL_SAVE_PATH}")
+    print(f"[SAVED] {save_path}")
+
+    if args.bench:
+        _benchmark_inference(model, input_size, model_type, device)
 
 
 if __name__ == "__main__":

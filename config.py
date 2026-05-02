@@ -8,6 +8,8 @@ CAMERA_TARGET_FPS = 30
 CAMERA_BACKEND = "msmf"  # Preferred backend on Windows: msmf or dshow
 CAMERA_BUFFER_SIZE = 1
 CAMERA_READ_WARMUP_FRAMES = 12
+CAMERA_FOURCC = "MJPG"       # Prefer MJPG when the webcam/backend supports it.
+LOW_LATENCY_CAMERA = True    # Drop stale webcam frames instead of processing backlog.
 
 # MediaPipe Pose Landmarker (Tasks API)
 POSE_MODEL_PATH = "models/pose_landmarker_full.task"
@@ -15,6 +17,26 @@ POSE_MODEL_URL = (
     "https://storage.googleapis.com/mediapipe-models/pose_landmarker/"
     "pose_landmarker_full/float16/1/pose_landmarker_full.task"
 )
+POSE_MODEL_VARIANTS = {
+    "lite": {
+        "path": "models/pose_landmarker_lite.task",
+        "url": (
+            "https://storage.googleapis.com/mediapipe-models/pose_landmarker/"
+            "pose_landmarker_lite/float16/1/pose_landmarker_lite.task"
+        ),
+    },
+    "full": {
+        "path": POSE_MODEL_PATH,
+        "url": POSE_MODEL_URL,
+    },
+    "heavy": {
+        "path": "models/pose_landmarker_heavy.task",
+        "url": (
+            "https://storage.googleapis.com/mediapipe-models/pose_landmarker/"
+            "pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task"
+        ),
+    },
+}
 POSE_NUM_POSES = 1
 POSE_MIN_DETECTION_CONFIDENCE = 0.5
 POSE_MIN_PRESENCE_CONFIDENCE = 0.5
@@ -52,7 +74,7 @@ ACTIONS = [
 ]
 
 # --- Training ---
-MODEL_SAVE_PATH = "models/action_classifier.pth"
+MODEL_SAVE_PATH = "models/action_classifier_gru.pth"
 EPOCHS = 120
 BATCH_SIZE = 8
 LEARNING_RATE = 1e-3
@@ -68,6 +90,18 @@ MODEL_TYPE = "stgcn"
 # LSTM params (used when MODEL_TYPE = "lstm")
 HIDDEN_SIZE = 64
 NUM_LSTM_LAYERS = 1
+
+# GRU params (used when MODEL_TYPE = "gru")
+# Lighter recurrent baseline. ~25% fewer params than LSTM at the same hidden size.
+GRU_HIDDEN_SIZE = 64
+GRU_NUM_LAYERS = 1
+
+# PoseConv1D params (used when MODEL_TYPE = "poseconv1d")
+# Causal depthwise-separable 1-D CNN. Lowest-latency option in this repo.
+# 4 dilated blocks with dilations [1,2,4,8] cover ~31 frames of left context.
+POSECNN_CHANNELS    = 48     # output channels per block
+POSECNN_KERNEL_SIZE = 3      # temporal kernel size
+POSECNN_NUM_LAYERS  = 4      # dilated blocks
 
 # TCN params (used when MODEL_TYPE = "tcn")
 # 4 dilated blocks with dilations [1,2,4,8] and kernel=3 give a receptive
@@ -98,6 +132,14 @@ PREPROCESS_USE_VISIBILITY = True  # weight each joint's (x,y,z) by its visibilit
 # ≥ STABLE_FRAMES consecutive frames. Kills flicker and accidental triggers.
 PREDICT_CONFIDENCE_THRESHOLD = 0.75  # was 0.85 — lower so valid poses aren't suppressed
 PREDICT_STABLE_FRAMES = 2             # was 3 — saves ~1 frame of gate delay
-# After a non-idle action triggers, wait this many frames before allowing
-# another non-idle trigger. Prevents the same punch from firing twice.
-PREDICT_TRIGGER_COOLDOWN = 5          # was 10 — ~0.17 s at 30 FPS (vs 0.53 s before)
+# After a non-idle action triggers, wait this many milliseconds before allowing
+# another non-idle trigger. Time-based cooldown keeps behavior stable at 30/60 FPS.
+PREDICT_TRIGGER_COOLDOWN_MS = 170
+
+# Fast partial-motion path for one-shot game inputs. The ST-GCN still runs as
+# the high-confidence fallback once the full 30-frame window is available.
+EARLY_ACTION_ENABLED = True
+EARLY_PUNCH_WINDOW_FRAMES = 5
+EARLY_PUNCH_MIN_SPEED = 0.18
+EARLY_PUNCH_MIN_EXTENSION_DELTA = 0.12
+EARLY_ACTION_COOLDOWN_MS = 250

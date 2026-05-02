@@ -88,28 +88,46 @@ export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSpr
     return 0;
   };
 
-  // Sprite paths - both players use knight sprite, P2 gets hue-shifted via style filter
   const spritePaths = {
     1: {
       atlas: '/sprites/player1/knight.json',
       image: '/sprites/player1/knight.png',
+      scale: 3,
     },
     2: {
       atlas: '/sprites/player1/knight.json',
       image: '/sprites/player1/knight.png',
+      scale: 3,
     },
   };
 
+  // Player-specific tint so both knights are visually distinct
+  const spriteTint = player.id === 2
+    ? `hue-rotate(150deg) saturate(1.3) drop-shadow(0 4px 12px ${colors.primary}80)`
+    : `drop-shadow(0 4px 12px ${colors.primary}80)`;
+
   return (
-    <motion.div
+    <div
       style={{
         position: 'absolute',
-        left: player.x,
-        top: player.y,
+        left: 0,
+        top: 0,
         width: width,
         height: height,
+        transform: `translate3d(${player.x}px, ${player.y}px, 0)`,
         transformOrigin: 'center bottom',
+        willChange: 'transform',
+        contain: 'layout style',
+        overflow: 'visible',
+      }}
+    >
+    <motion.div
+      style={{
+        position: 'relative',
+        width: width,
+        height: height,
         filter: isHurt ? 'brightness(2) saturate(0.3)' : 'none',
+        transformOrigin: 'center bottom',
       }}
       animate={{
         y: player.action === 'idle' ? [0, -2, 0] : 0,
@@ -156,11 +174,11 @@ export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSpr
             animation={spriteAnimation}
             frameRate={frameRate}
             loop={!isAttacking && !isHurt}
-            scale={3}
+            scale={spritePaths[player.id].scale}
             flipX={false}
             frameOffset={frameOffset}
             style={{
-              filter: `drop-shadow(0 4px 8px ${colors.primary}40) hue-rotate(${player.id === 2 ? '180deg' : '0deg'})`,
+              filter: spriteTint,
             }}
           />
           
@@ -529,6 +547,7 @@ export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSpr
         {player.action.replace('_', ' ')}
       </motion.div>
     </motion.div>
+    </div>
   );
 };
 
