@@ -1,0 +1,66 @@
+PLAYER 1
+IDLE
+PLAYER 2
+IDLE
+P1
+PLAYER 1
+P1 · KNIGHT
+100
+P2
+PLAYER 2
+P2 · FIGHTER
+100
+SPECIAL
+MOVES
+Light
+Q/E
+Heavy
+Z/C
+SPECIAL
+MOVES
+Light
+U/O
+Heavy
+N/M
+⚡ PREPARE FOR BATTLE ⚡
+⚔️ BATTLE ARENA ⚔️
+
+2-PLAYER FIGHTING GAME
+
+▶️FIGHT NOW⚡
+🔵
+PLAYER 1
+Jump
+W
+Move
+A
+D
+Block
+S
+Punch
+Q
+E
+Kick
+Z
+C
+🔴
+PLAYER 2
+Jump
+I
+↑
+Move
+J
+L
+Block
+K
+↓
+Punch
+U
+O
+Kick
+N
+M
+PLAYER 1
+W/A/S/D + Q/E (punch) + Z/C (kick)
+PLAYER 2
+I/J/K/L + U/O (punch) + N/M (kick)

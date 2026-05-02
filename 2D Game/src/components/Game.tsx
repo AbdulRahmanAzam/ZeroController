@@ -77,6 +77,7 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
   });
   const prevGameStatus = useRef(gameStatus);
   const isZeroControllerMode = player1ControlMode === 'zero_controller';
+  const gameLoopTargetFPS = isZeroControllerMode ? 30 : 60;
 
   // Initialize SoundManager on mount
   useEffect(() => {
@@ -203,7 +204,7 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
   const { start, stop } = useGameLoop({
     onUpdate,
     onRender,
-    targetFPS: 60,
+    targetFPS: gameLoopTargetFPS,
   });
 
   // Start/resume game
@@ -315,7 +316,7 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
           background: 'transparent',
         }}
       >
-        <EnhancedArena>
+        <EnhancedArena performanceMode={isZeroControllerMode}>
           {/* Players */}
           <EnhancedFighter player={player1} />
           <EnhancedFighter player={player2} />

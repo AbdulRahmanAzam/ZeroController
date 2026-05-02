@@ -16,6 +16,13 @@ export interface Frame {
     w: number;
     h: number;
   };
+  // Per-frame pivot in source-pixel coords (x measured from left of source,
+  // y measured from top — y is the feet baseline). Optional: when absent the
+  // renderer falls back to bottom-center anchoring.
+  pivot?: {
+    x: number;
+    y: number;
+  };
 }
 
 export interface SpriteAtlas {
