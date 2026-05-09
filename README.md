@@ -1,14 +1,14 @@
 # ZeroController — Real-time pose visualizer & action classifier
 
 Brief: a small toolkit to detect MediaPipe 33-point poses from webcam, collect
-labeled pose-sequences, augment data, train a lightweight LSTM classifier, and
-run live inference for simple actions (e.g., punches).
+labeled pose-sequences, augment data, train lightweight action classifiers
+(ST-GCN/TCN/LSTM/GRU/PoseConv1D), and run live inference for game control.
 
 What the project provides (high level):
 - Real-time pose visualizer (`main.py`) using MediaPipe pose landmarker.
 - Interactive data collection tool (`collect_data.py`) that saves (T,33,4) samples.
 - Simple augmentation helper (`augment_data.py`) to mirror right/left samples.
-- Training script (`train_model.py`) for a small LSTM action classifier.
+- Training script (`train_model.py`) for ST-GCN, TCN, LSTM, GRU, and PoseConv1D classifiers.
 - Live inference runner (`run_model.py`) that shows predicted action on camera.
 
 Quick setup
@@ -23,7 +23,8 @@ Run (examples)
 - Visualize pose: `python main.py`
 - Collect labeled sequences: `python collect_data.py`  (controls in the file header)
 - Mirror right→left samples: `python augment_data.py`
-- Train classifier: `python train_model.py`
+- Train classifier (defaults from `config.py`): `python train_model.py`
+- Train a specific architecture: `python train_model.py --model-type stgcn` (or `tcn`, `lstm`, `gru`, `poseconv1d`)
 - Run live detector with trained model: `python run_model.py`
 
 Run with the 2D game
@@ -55,7 +56,7 @@ Files (brief, bullet points)
 - `main.py`: pose visualizer, model downloader (`ensure_pose_model`), drawing HUD.
 - `collect_data.py`: interactive recorder that saves sequences to `data/raw/<label>/`.
 - `augment_data.py`: mirrors sequences (flip x + swap left/right landmark indices).
-- `train_model.py`: small LSTM (`PunchLSTM`), data loader, training loop, saves checkpoint.
+- `train_model.py`: model definitions (`ActionSTGCN`, `ActionTCN`, `ActionLSTM`, `ActionGRU`, `ActionPoseConv1D`), data loader, training loop, checkpoint save.
 - `run_model.py`: loads checkpoint + MediaPipe landmarker, runs live prediction overlay.
 - `requirements.txt`: required Python packages (mediapipe, opencv-contrib-python, numpy, torch).
 - `models/`: contains the MediaPipe `.task` and any saved PyTorch checkpoints.
@@ -83,3 +84,6 @@ If you want, I can also:
 - run a quick static check and fix small config typos, or
 - open a short CONTRIBUTING or USAGE example with screenshots.
 
+Final report
+- A PDF-ready final semester report draft grounded in this repository is available at:
+  - `FINAL_SEMESTER_REPORT.md`
