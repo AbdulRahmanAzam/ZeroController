@@ -30,11 +30,11 @@ Augmentation is applied in two places:
 ## 4. Network Architecture
 **Primary model (default): ActionSTGCN**
 - **Input:** (B, 6, 30, 33) when velocity stream is enabled.
-- **Graph structure:** fixed 33-joint skeleton graph with self-loops, symmetrically normalized adjacency matrix `Â`.
+- **Graph structure:** fixed 33-joint skeleton graph with self-loops, symmetrically normalized adjacency matrix `A_hat`.
 - **Pipeline:**
   1. **Input BatchNorm** over joint-channel features.
   2. **3 ST-GCN blocks** (channels 6 → 32 → 64 → 64):
-     - Spatial graph convolution (1×1 conv + `Â` aggregation).
+     - Spatial graph convolution (1×1 conv + `A_hat` aggregation).
      - Temporal convolution (kernel size 9).
      - Dropout + residual connection + ReLU.
   3. **Global average pooling** over time and joints.
@@ -77,7 +77,7 @@ Training uses **single-term multi-class cross-entropy**:
 
 **Quantitative comparison available in the repo:**
 - **ZeroController ST-GCN:** ~94k parameters, **5-8 ms** forward time, and end-to-end pipeline latency **~20 ms** per frame (MediaPipe + preprocessing + ST-GCN + gating).
-- **Heavier SOTA variants:** documented as **20-110 ms** latency in the project’s design notes, which would exceed the 30 fps budget.
+- **Heavier SOTA variants:** documented as **20-110 ms** latency in the project’s design notes, which would exceed the 30 fps budget (~33 ms per frame).
 
 **Accuracy comparison:**
 - The repository does not include benchmark accuracy numbers against public datasets or SOTA models. Therefore, a **quantitative accuracy comparison cannot be reported from the current codebase**. To complete this section with accuracy metrics, the project would need evaluations on a standard skeleton-action dataset (e.g., NTU RGB+D) or a controlled internal benchmark with reported validation accuracy and confusion matrices.
