@@ -8,3 +8,6 @@ venv/
 
 # Downloaded model artifacts
 models/*.task
+
+# Large video captures
+*.avi
