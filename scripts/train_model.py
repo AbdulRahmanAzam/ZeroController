@@ -566,7 +566,7 @@ def load_dataset(actions=None, model_type=None):
 
     X_list, y_list = [], []
 
-    # Sibling folder produced by simple_augment.py. Loaded if present so the
+    # Sibling folder produced by the optional augmentation step. Loaded if present so the
     # training set transparently includes augments. Delete the folder to
     # disable augmentation without changing any code.
     augmented_root = os.path.join(os.path.dirname(DATA_DIR.rstrip(os.sep)), "augmented")

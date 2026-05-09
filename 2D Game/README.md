@@ -105,11 +105,11 @@ This game is designed to work with a camera-based pose detection system for the 
 
 ### Required Backend
 
-The implemented ZeroController bridge is `run_model.py` in the project root.
+The implemented ZeroController bridge is `scripts/run_model.py` in the project root.
 Start it before choosing ZeroController mode:
 
 ```bash
-python run_model.py
+python scripts/run_model.py
 ```
 
 The game reads Player 1 actions from:
@@ -120,7 +120,7 @@ ws://localhost:8000/ws/pose/{player_id}
 
 The menu lets Player 1 choose either `KEYBOARD` or `ZERO CONTROLLER`. When
 `ZERO CONTROLLER` is selected, the battle screen shows the bridge status and
-waits for `run_model.py` before enabling the fight button.
+waits for `scripts/run_model.py` before enabling the fight button.
 
 ### Recommended Tech Stack
 - **Pose Detection**: MediaPipe Pose, OpenPose, or PoseNet
@@ -131,7 +131,7 @@ waits for `run_model.py` before enabling the fight button.
 
 ```bash
 pip install -r ../requirements.txt
-python ../run_model.py
+python ../scripts/run_model.py
 ```
 
 ---

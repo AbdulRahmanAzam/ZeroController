@@ -52,7 +52,7 @@ Mirrors x-coordinates and swaps symmetric joints for left/right punch and kick a
 ## Running the Pipeline
 
 ```bash
-python augment_data.py
+python scripts/augment_data.py
 ```
 
 The script will:
@@ -62,7 +62,7 @@ The script will:
 
 ## Using Augmented Data for Training
 
-To train with augmented data, update `train_model.py`:
+To train with augmented data, update `scripts/train_model.py`:
 
 ```python
 from pathlib import Path
@@ -140,8 +140,8 @@ Drawbacks:
 
 1. **Phase 1: Train on Original + Augmented Data**
    ```bash
-   python augment_data.py  # Generate 5.1x augmented samples
-   python train_model.py   # Train with --include-augmented
+   python scripts/augment_data.py  # Generate 5.1x augmented samples
+   python scripts/train_model.py   # Train with --include-augmented
    ```
 
 2. **Phase 2: Evaluate on Test Set**
@@ -167,7 +167,7 @@ Drawbacks:
 - Verify SEQUENCE_LENGTH in `config.py` matches saved data
 
 **Q: "Augmentation too aggressive"**
-- A: Adjust technique parameters in augment_data.py:
+- A: Adjust technique parameters in scripts/augment_data.py:
   - `std=0.02` → `std=0.01` for less spatial noise
   - `scale_range=(0.85, 1.15)` → `(0.9, 1.1)` for subtler scaling
   - `max_angle_deg=15` → `max_angle_deg=8` for smaller rotations
