@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import type { QualityMode } from '../types/game';
 
 interface HitEffectsProps {
   player: 1 | 2;
   type: 'hit' | 'block';
   position: { x: number; y: number };
+  quality?: QualityMode;
 }
 
 // Deterministic value generation - stable across renders
@@ -27,9 +29,11 @@ const SPARKLE_PARTICLES = Array.from({ length: 4 }, (_, i) => {
   return { angle, distance };
 });
 
-export const HitEffects: React.FC<HitEffectsProps> = ({ type, position }) => {
+export const HitEffects: React.FC<HitEffectsProps> = ({ type, position, quality = 'high' }) => {
   const color = type === 'hit' ? '#ff6b6b' : '#74b9ff';
   const [useSprites] = useState(true);
+  const reducedEffects = quality !== 'high';
+  const lowQuality = quality === 'low';
   
   // Memoize expensive style calculations
   const effectStyles = useMemo(() => ({
@@ -93,14 +97,14 @@ export const HitEffects: React.FC<HitEffectsProps> = ({ type, position }) => {
                   style={{
                     width: '100%',
                     height: '100%',
-                    filter: `hue-rotate(${type === 'hit' ? '300deg' : '0deg'}) brightness(1.5)`,
+                    filter: lowQuality ? 'none' : `hue-rotate(${type === 'hit' ? '300deg' : '0deg'}) brightness(1.5)`,
                     imageRendering: 'pixelated',
                   }}
                 />
               </motion.div>
 
               {/* Star particles - optimized */}
-              {STAR_PARTICLES.map((particle, i) => (
+              {!reducedEffects && STAR_PARTICLES.map((particle, i) => (
                 <motion.div
                   key={`star-${i}`}
                   initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
@@ -134,7 +138,7 @@ export const HitEffects: React.FC<HitEffectsProps> = ({ type, position }) => {
               ))}
 
               {/* Sparkles - optimized */}
-              {SPARKLE_PARTICLES.map((particle, i) => (
+              {!reducedEffects && SPARKLE_PARTICLES.map((particle, i) => (
                 <motion.div
                   key={`sparkle-${i}`}
                   initial={{ x: 0, y: 0, opacity: 1, scale: 0.5 }}
@@ -250,7 +254,7 @@ export const HitEffects: React.FC<HitEffectsProps> = ({ type, position }) => {
               top: -40,
               border: `4px solid ${color}`,
               borderRadius: '50%',
-              boxShadow: `0 0 20px ${color}`,
+              boxShadow: lowQuality ? 'none' : `0 0 20px ${color}`,
             }}
           />
           
@@ -282,7 +286,7 @@ export const HitEffects: React.FC<HitEffectsProps> = ({ type, position }) => {
               fontSize: 20,
               fontWeight: 'bold',
               color: '#74b9ff',
-              textShadow: '0 0 10px #0984e3',
+              textShadow: lowQuality ? 'none' : '0 0 10px #0984e3',
               whiteSpace: 'nowrap',
             }}
           >

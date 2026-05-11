@@ -1,0 +1,102 @@
+========================================================================
+ZERO CONTROLLER - TRAIN/TEST SPLIT
+Test ratio : 0.25
+Balance    : min
+Augment    : False
+Device     : cuda
+========================================================================
+[DATA] Raw samples used: 522  |  Train: 396  Test: 126
+
+------------------------------------------------------------
+Model: lstm
+  Epoch   1/120  |  loss: 2.1133  train_acc: 20.71%
+  Epoch  10/120  |  loss: 0.5431  train_acc: 83.59%
+  Epoch  20/120  |  loss: 0.3567  train_acc: 90.15%
+  Epoch  30/120  |  loss: 0.2388  train_acc: 94.95%
+  Epoch  40/120  |  loss: 0.1016  train_acc: 97.47%
+  Epoch  50/120  |  loss: 0.0743  train_acc: 98.48%
+  Epoch  60/120  |  loss: 0.0812  train_acc: 98.74%
+  Epoch  70/120  |  loss: 0.0606  train_acc: 98.48%
+  Epoch  80/120  |  loss: 0.0315  train_acc: 99.24%
+  Epoch  90/120  |  loss: 0.0258  train_acc: 99.75%
+  Epoch 100/120  |  loss: 0.0203  train_acc: 99.75%
+  Epoch 110/120  |  loss: 0.0201  train_acc: 99.75%
+  Epoch 120/120  |  loss: 0.0157  train_acc: 99.75%
+[RESULT] test_acc: 94.44%  saved: C:\Users\azama\VS Code\PROJECTS\01 Academic and Tutorial Projects\zeroController\data\models\action_classifier_lstm_split.pth
+
+------------------------------------------------------------
+Model: gru
+  Epoch   1/120  |  loss: 2.1160  train_acc: 24.24%
+  Epoch  10/120  |  loss: 0.3752  train_acc: 89.90%
+  Epoch  20/120  |  loss: 0.1809  train_acc: 95.71%
+  Epoch  30/120  |  loss: 0.0928  train_acc: 97.98%
+  Epoch  40/120  |  loss: 0.0722  train_acc: 98.48%
+  Epoch  50/120  |  loss: 0.0704  train_acc: 98.48%
+  Epoch  60/120  |  loss: 0.0393  train_acc: 99.49%
+  Epoch  70/120  |  loss: 0.0305  train_acc: 99.49%
+  Epoch  80/120  |  loss: 0.0270  train_acc: 99.75%
+  Epoch  90/120  |  loss: 0.0189  train_acc: 99.75%
+  Epoch 100/120  |  loss: 0.0167  train_acc: 99.75%
+  Epoch 110/120  |  loss: 0.0179  train_acc: 99.75%
+  Epoch 120/120  |  loss: 0.0173  train_acc: 99.75%
+[RESULT] test_acc: 96.83%  saved: C:\Users\azama\VS Code\PROJECTS\01 Academic and Tutorial Projects\zeroController\data\models\action_classifier_gru_split.pth
+
+------------------------------------------------------------
+Model: tcn
+  Epoch   1/120  |  loss: 1.1148  train_acc: 66.92%
+  Epoch  10/120  |  loss: 0.1878  train_acc: 94.95%
+  Epoch  20/120  |  loss: 0.1145  train_acc: 95.96%
+  Epoch  30/120  |  loss: 0.0966  train_acc: 96.21%
+  Epoch  40/120  |  loss: 0.0402  train_acc: 98.99%
+  Epoch  50/120  |  loss: 0.0453  train_acc: 98.23%
+  Epoch  60/120  |  loss: 0.0275  train_acc: 99.49%
+  Epoch  70/120  |  loss: 0.0435  train_acc: 98.48%
+  Epoch  80/120  |  loss: 0.0305  train_acc: 99.24%
+  Epoch  90/120  |  loss: 0.0200  train_acc: 99.24%
+  Epoch 100/120  |  loss: 0.0157  train_acc: 99.75%
+  Epoch 110/120  |  loss: 0.0146  train_acc: 99.75%
+  Epoch 120/120  |  loss: 0.0121  train_acc: 100.00%
+[RESULT] test_acc: 96.03%  saved: C:\Users\azama\VS Code\PROJECTS\01 Academic and Tutorial Projects\zeroController\data\models\action_classifier_tcn_split.pth
+
+------------------------------------------------------------
+Model: stgcn
+  Epoch   1/120  |  loss: 1.8803  train_acc: 34.60%
+  Epoch  10/120  |  loss: 0.9718  train_acc: 66.92%
+  Epoch  20/120  |  loss: 0.6391  train_acc: 77.27%
+  Epoch  30/120  |  loss: 0.4733  train_acc: 86.36%
+  Epoch  40/120  |  loss: 0.4067  train_acc: 86.62%
+  Epoch  50/120  |  loss: 0.3304  train_acc: 90.91%
+  Epoch  60/120  |  loss: 0.2292  train_acc: 92.68%
+  Epoch  70/120  |  loss: 0.2920  train_acc: 91.16%
+  Epoch  80/120  |  loss: 0.2243  train_acc: 93.94%
+  Epoch  90/120  |  loss: 0.1680  train_acc: 94.95%
+  Epoch 100/120  |  loss: 0.2012  train_acc: 94.44%
+  Epoch 110/120  |  loss: 0.2380  train_acc: 93.69%
+  Epoch 120/120  |  loss: 0.2183  train_acc: 92.68%
+[RESULT] test_acc: 95.24%  saved: C:\Users\azama\VS Code\PROJECTS\01 Academic and Tutorial Projects\zeroController\data\models\action_classifier_stgcn_split.pth
+
+------------------------------------------------------------
+Model: poseconv1d
+  Epoch   1/120  |  loss: 1.9274  train_acc: 30.30%
+  Epoch  10/120  |  loss: 0.2762  train_acc: 91.67%
+  Epoch  20/120  |  loss: 0.1565  train_acc: 94.95%
+  Epoch  30/120  |  loss: 0.1378  train_acc: 95.96%
+  Epoch  40/120  |  loss: 0.1055  train_acc: 97.47%
+  Epoch  50/120  |  loss: 0.0442  train_acc: 98.48%
+  Epoch  60/120  |  loss: 0.0593  train_acc: 97.98%
+  Epoch  70/120  |  loss: 0.0255  train_acc: 99.24%
+  Epoch  80/120  |  loss: 0.0273  train_acc: 99.49%
+  Epoch  90/120  |  loss: 0.0310  train_acc: 98.74%
+  Epoch 100/120  |  loss: 0.0311  train_acc: 98.99%
+  Epoch 110/120  |  loss: 0.0391  train_acc: 99.24%
+  Epoch 120/120  |  loss: 0.0284  train_acc: 98.48%
+[RESULT] test_acc: 96.03%  saved: C:\Users\azama\VS Code\PROJECTS\01 Academic and Tutorial Projects\zeroController\data\models\action_classifier_poseconv1d_split.pth
+
+========================================================================
+SUMMARY
+  lstm       test_acc=94.44%  C:\Users\azama\VS Code\PROJECTS\01 Academic and Tutorial Projects\zeroController\data\models\action_classifier_lstm_split.pth
+  gru        test_acc=96.83%  C:\Users\azama\VS Code\PROJECTS\01 Academic and Tutorial Projects\zeroController\data\models\action_classifier_gru_split.pth
+  tcn        test_acc=96.03%  C:\Users\azama\VS Code\PROJECTS\01 Academic and Tutorial Projects\zeroController\data\models\action_classifier_tcn_split.pth
+  stgcn      test_acc=95.24%  C:\Users\azama\VS Code\PROJECTS\01 Academic and Tutorial Projects\zeroController\data\models\action_classifier_stgcn_split.pth
+  poseconv1d test_acc=96.03%  C:\Users\azama\VS Code\PROJECTS\01 Academic and Tutorial Projects\zeroController\data\models\action_classifier_poseconv1d_split.pth
+========================================================================

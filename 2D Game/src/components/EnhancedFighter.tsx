@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import type { PlayerState, ActionType } from '../types/game';
+import type { PlayerState, ActionType, QualityMode } from '../types/game';
 import { GAME_CONFIG, ANIMATIONS } from '../game/config';
 import { SpriteSheet } from './SpriteSheet';
 
 interface EnhancedFighterProps {
   player: PlayerState;
   useSprites?: boolean;
+  quality?: QualityMode;
 }
 
 // Player color schemes - more dramatic
@@ -31,7 +32,7 @@ const FIGHTER_COLORS = {
   },
 };
 
-export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSprites = true }) => {
+export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSprites = true, quality = 'high' }) => {
   const colors = FIGHTER_COLORS[player.id];
   const width = GAME_CONFIG.playerWidth;
   const height = GAME_CONFIG.playerHeight;
@@ -41,6 +42,8 @@ export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSpr
   const isAttacking = player.isAttacking;
   const isPunching = player.action === 'left_punch' || player.action === 'right_punch';
   const isKicking = player.action === 'left_kick' || player.action === 'right_kick';
+  const reducedEffects = quality !== 'high';
+  const lowQuality = quality === 'low';
 
   // Map game actions to sprite animations - use all 3 attack animations for variety
   const spriteAnimation = useMemo(() => {
@@ -103,8 +106,8 @@ export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSpr
 
   // Player-specific tint so both knights are visually distinct
   const spriteTint = player.id === 2
-    ? `hue-rotate(150deg) saturate(1.3) drop-shadow(0 4px 12px ${colors.primary}80)`
-    : `drop-shadow(0 4px 12px ${colors.primary}80)`;
+    ? lowQuality ? 'hue-rotate(150deg) saturate(1.15)' : `hue-rotate(150deg) saturate(1.3) drop-shadow(0 4px 12px ${colors.primary}80)`
+    : lowQuality ? 'none' : `drop-shadow(0 4px 12px ${colors.primary}80)`;
 
   return (
     <div
@@ -129,7 +132,7 @@ export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSpr
         filter: isHurt ? 'brightness(2) saturate(0.3)' : 'none',
         transformOrigin: 'center bottom',
       }}
-      animate={{
+      animate={reducedEffects ? undefined : {
         y: player.action === 'idle' ? [0, -2, 0] : 0,
       }}
       transition={{
@@ -137,7 +140,7 @@ export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSpr
       }}
     >
       {/* Energy aura when attacking */}
-      {isAttacking && (
+      {isAttacking && !reducedEffects && (
         <motion.div
           initial={{ scale: 0.5, opacity: 0.8 }}
           animate={{ scale: 2, opacity: 0 }}
@@ -184,16 +187,16 @@ export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSpr
           
           {/* Ground shadow for sprite */}
           <div
-            style={{
-              position: 'absolute',
-              bottom: -10,
+          style={{
+            position: 'absolute',
+            bottom: -10,
               left: '50%',
               transform: 'translateX(-50%)',
               width: player.isGrounded ? 60 : 40,
               height: 10,
               background: 'radial-gradient(ellipse, rgba(0,0,0,0.5) 0%, transparent 70%)',
               borderRadius: '50%',
-              transition: 'width 0.2s',
+              transition: lowQuality ? 'none' : 'width 0.2s',
             }}
           />
         </div>
@@ -515,7 +518,7 @@ export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSpr
           fontWeight: 'bold',
           fontSize: 11,
           fontFamily: 'Orbitron, sans-serif',
-          boxShadow: `0 0 15px ${colors.energy}80`,
+          boxShadow: lowQuality ? 'none' : `0 0 15px ${colors.energy}80`,
           border: `2px solid ${colors.accent}`,
           letterSpacing: 2,
           whiteSpace: 'nowrap',
@@ -539,7 +542,7 @@ export const EnhancedFighter: React.FC<EnhancedFighterProps> = ({ player, useSpr
           fontWeight: 'bold',
           fontFamily: 'Orbitron, sans-serif',
           textTransform: 'uppercase',
-          textShadow: `0 0 10px ${colors.energy}`,
+          textShadow: lowQuality ? 'none' : `0 0 10px ${colors.energy}`,
           letterSpacing: 1,
           whiteSpace: 'nowrap',
         }}

@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import type { QualityMode } from '../types/game';
 
 interface EnhancedArenaProps {
   children: React.ReactNode;
   backgroundImage?: string;
   performanceMode?: boolean;
+  quality?: QualityMode;
 }
 
 // Deterministic particle generation - stable between renders
@@ -31,8 +33,11 @@ export const EnhancedArena: React.FC<EnhancedArenaProps> = ({
   children,
   backgroundImage = '/backgrounds/cavern1.png',
   performanceMode = false,
+  quality = 'high',
 }) => {
   const [bgLoaded, setBgLoaded] = useState(false);
+  const reducedEffects = performanceMode || quality !== 'high';
+  const lowQuality = quality === 'low';
   
   // Memoize expensive gradient calculations
   const gradientStyles = useMemo(() => ({
@@ -106,7 +111,7 @@ export const EnhancedArena: React.FC<EnhancedArenaProps> = ({
         }}
       />
 
-      {!performanceMode && (
+      {!reducedEffects && (
         <div
           style={{
             position: 'absolute',
@@ -156,7 +161,7 @@ export const EnhancedArena: React.FC<EnhancedArenaProps> = ({
         }}
       />
 
-      {!performanceMode && (
+      {!reducedEffects && (
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', pointerEvents: 'none' }}>
           {STABLE_PARTICLES.map((particle, i) => (
             <motion.div
@@ -208,8 +213,8 @@ export const EnhancedArena: React.FC<EnhancedArenaProps> = ({
             right: '8%',
             height: 3,
             background: 'linear-gradient(90deg, transparent, #c084fc, #f5a623, #c084fc, transparent)',
-            boxShadow: performanceMode
-              ? '0 0 18px #7c3aed, 0 0 30px #7c3aed'
+            boxShadow: reducedEffects
+              ? lowQuality ? 'none' : '0 0 12px #7c3aed'
               : '0 0 25px #a855f7, 0 0 55px #7c3aed, 0 0 80px #6d28d9',
           }}
         />
@@ -251,7 +256,7 @@ export const EnhancedArena: React.FC<EnhancedArenaProps> = ({
           left: 0,
           right: 0,
           height: '35%',
-          background: `
+          background: lowQuality ? 'transparent' : `
             radial-gradient(ellipse 90% 60% at 50% 110%, rgba(120, 40, 220, 0.25) 0%, transparent 65%),
             radial-gradient(ellipse 50% 40% at 15% 110%, rgba(245, 130, 0, 0.14) 0%, transparent 60%),
             radial-gradient(ellipse 50% 40% at 85% 110%, rgba(200, 30, 100, 0.14) 0%, transparent 60%)
@@ -269,7 +274,7 @@ export const EnhancedArena: React.FC<EnhancedArenaProps> = ({
           width: 8,
           height: '100%',
           background: 'linear-gradient(180deg, #00d4ff 0%, transparent 30%, transparent 70%, #00d4ff 100%)',
-          boxShadow: '0 0 30px #00d4ff, 0 0 60px #0088aa',
+          boxShadow: lowQuality ? 'none' : '0 0 30px #00d4ff, 0 0 60px #0088aa',
         }}
       />
       <div
@@ -280,7 +285,7 @@ export const EnhancedArena: React.FC<EnhancedArenaProps> = ({
           width: 8,
           height: '100%',
           background: 'linear-gradient(180deg, #ff4757 0%, transparent 30%, transparent 70%, #ff4757 100%)',
-          boxShadow: '0 0 30px #ff4757, 0 0 60px #cc0022',
+          boxShadow: lowQuality ? 'none' : '0 0 30px #ff4757, 0 0 60px #cc0022',
         }}
       />
 
@@ -319,17 +324,19 @@ export const EnhancedArena: React.FC<EnhancedArenaProps> = ({
       </div>
 
       {/* Vignette */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: gradientStyles.vignette,
-          pointerEvents: 'none',
-        }}
-      />
+      {!lowQuality && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: gradientStyles.vignette,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
 
       {/* Corner decorations */}
       <svg style={{ position: 'absolute', top: 0, left: 0, width: 100, height: 100, opacity: 0.6 }}>

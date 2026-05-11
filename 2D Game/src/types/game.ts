@@ -2,6 +2,7 @@
 export type AIDifficulty = 'easy' | 'medium' | 'hard';
 export type GameMode = 'vs_player' | 'vs_ai';
 export type PlayerOneControlMode = 'keyboard' | 'zero_controller';
+export type QualityMode = 'high' | 'medium' | 'low';
 
 // Game action types - the 9 movements
 export type ActionType =

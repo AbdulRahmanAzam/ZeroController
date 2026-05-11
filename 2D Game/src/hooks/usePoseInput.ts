@@ -22,6 +22,9 @@ interface PoseResponse {
   triggered?: boolean;
   eventId?: number;
   triggerSource?: 'early' | 'classifier' | null;
+  controlSource?: 'fast_movement' | 'early' | 'classifier' | null;
+  fastAction?: ActionType | null;
+  inputAgeMs?: number;
   captureAgeMs?: number;
   pipelineLatencyMs?: number;
   latencyStats?: PoseLatencyStats;
@@ -47,6 +50,9 @@ export interface PoseInputStatus {
   timestamp?: number;
   eventId?: number;
   triggerSource?: 'early' | 'classifier' | null;
+  controlSource?: 'fast_movement' | 'early' | 'classifier' | null;
+  fastAction?: ActionType | null;
+  inputAgeMs?: number;
   captureAgeMs?: number;
   pipelineLatencyMs?: number;
   latencyStats?: PoseLatencyStats;
@@ -78,6 +84,13 @@ const ONE_SHOT_ACTIONS = new Set<ActionType>([
   'right_kick',
 ]);
 const STATUS_UPDATE_INTERVAL_MS = 100;
+const CONTINUOUS_ACTIONS = new Set<ActionType>([
+  'idle',
+  'move_forward',
+  'move_backward',
+  'block',
+]);
+const STALE_CONTINUOUS_INPUT_MS = 150;
 
 function shouldEmitPoseInput(
   action: ActionType,
@@ -119,6 +132,8 @@ export function usePoseInput({
   const lastStatusUpdateRef = useRef(0);
   const lastStatusActionRef = useRef<ActionType>('idle');
   const lastBridgeStatusRef = useRef<string | undefined>(undefined);
+  const staleInputTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastContinuousActionRef = useRef<ActionType>('idle');
   const HEALTH_RETRY_MS = 2000;
   const WS_RETRY_MS = 2000;
 
@@ -139,10 +154,43 @@ export function usePoseInput({
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;
       }
+      if (staleInputTimeoutRef.current) {
+        clearTimeout(staleInputTimeoutRef.current);
+        staleInputTimeoutRef.current = null;
+      }
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
       }
+    };
+
+    const armStaleInputWatchdog = (action: ActionType) => {
+      if (staleInputTimeoutRef.current) {
+        clearTimeout(staleInputTimeoutRef.current);
+        staleInputTimeoutRef.current = null;
+      }
+
+      if (!CONTINUOUS_ACTIONS.has(action) || action === 'idle') {
+        lastContinuousActionRef.current = action;
+        return;
+      }
+
+      lastContinuousActionRef.current = action;
+      staleInputTimeoutRef.current = setTimeout(() => {
+        if (cancelled || lastContinuousActionRef.current === 'idle') return;
+        lastContinuousActionRef.current = 'idle';
+        onInput({
+          playerId,
+          action: 'idle',
+        });
+        onStatus?.({
+          connection: 'connected',
+          bridgeStatus: lastBridgeStatusRef.current,
+          message: 'Pose input stale; released continuous action.',
+          action: 'idle',
+          confidence: 0,
+        });
+      }, STALE_CONTINUOUS_INPUT_MS);
     };
 
     const scheduleReconnect = (connection: PoseInputStatus['connection'], message: string, delayMs: number) => {
@@ -210,6 +258,7 @@ export function usePoseInput({
                 playerId,
                 action,
               });
+              armStaleInputWatchdog(action);
             }
 
             const now = performance.now();
@@ -235,6 +284,9 @@ export function usePoseInput({
                 timestamp: data.timestamp,
                 eventId: data.eventId,
                 triggerSource: data.triggerSource,
+                controlSource: data.controlSource,
+                fastAction: data.fastAction ? normalizeAction(data.fastAction) : null,
+                inputAgeMs: data.inputAgeMs,
                 captureAgeMs: data.captureAgeMs,
                 pipelineLatencyMs: data.pipelineLatencyMs,
                 latencyStats: data.latencyStats,

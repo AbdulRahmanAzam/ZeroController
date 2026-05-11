@@ -1,16 +1,20 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { PlayerState } from '../types/game';
+import type { PlayerState, QualityMode } from '../types/game';
 
 interface SpecialMoveIndicatorProps {
   player: PlayerState;
   position: 'left' | 'right';
+  quality?: QualityMode;
 }
 
 export const SpecialMoveIndicator: React.FC<SpecialMoveIndicatorProps> = ({
   player,
   position,
+  quality = 'high',
 }) => {
+  const reducedEffects = quality !== 'high';
+  const lowQuality = quality === 'low';
   const colors = player.id === 1
     ? { primary: '#f5a623', secondary: '#c07012', accent: '#ffd060' }
     : { primary: '#e83030', secondary: '#9b1010', accent: '#ff6060' };
@@ -72,7 +76,7 @@ export const SpecialMoveIndicator: React.FC<SpecialMoveIndicatorProps> = ({
               <motion.div
                 key={i}
                 animate={
-                  segmentFilled
+                  segmentFilled && !reducedEffects
                     ? {
                         boxShadow: [
                           `0 0 10px ${colors.primary}80`,
@@ -96,7 +100,7 @@ export const SpecialMoveIndicator: React.FC<SpecialMoveIndicatorProps> = ({
                   clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)',
                 }}
               >
-                {segmentFilled && (
+                {segmentFilled && !reducedEffects && (
                   <motion.div
                     animate={{ x: [-50, 60] }}
                     transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -128,7 +132,7 @@ export const SpecialMoveIndicator: React.FC<SpecialMoveIndicatorProps> = ({
               padding: '10px 15px',
               borderRadius: 10,
               border: `2px solid ${colors.primary}`,
-              boxShadow: `0 0 20px ${colors.primary}60`,
+              boxShadow: lowQuality ? 'none' : `0 0 20px ${colors.primary}60`,
             }}
           >
             <div
@@ -181,7 +185,7 @@ export const SpecialMoveIndicator: React.FC<SpecialMoveIndicatorProps> = ({
               fontWeight: 900,
               fontFamily: 'Bebas Neue, sans-serif',
               color: colors.accent,
-              textShadow: `0 0 20px ${colors.primary}, 2px 2px 4px rgba(0,0,0,0.9)`,
+              textShadow: lowQuality ? '2px 2px 4px rgba(0,0,0,0.9)' : `0 0 20px ${colors.primary}, 2px 2px 4px rgba(0,0,0,0.9)`,
               letterSpacing: 2,
               background: 'rgba(0,0,0,0.7)',
               padding: '6px 14px',
@@ -195,33 +199,35 @@ export const SpecialMoveIndicator: React.FC<SpecialMoveIndicatorProps> = ({
       </AnimatePresence>
 
       {/* Quick move reference - Tekken style command list */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.4 }}
-        whileHover={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        style={{
-          marginTop: 10,
-          fontSize: 10,
-          fontFamily: 'monospace',
-          color: '#666',
-          background: 'rgba(0,0,0,0.8)',
-          padding: '8px 10px',
-          borderRadius: 6,
-          border: '1px solid rgba(255,255,255,0.1)',
-          maxWidth: 140,
-        }}
-      >
-        <div style={{ marginBottom: 4, fontWeight: 700, color: '#999' }}>MOVES</div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-          <span>Light</span>
-          <span style={{ color: colors.primary }}>{player.id === 1 ? 'Q/E' : 'U/O'}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>Heavy</span>
-          <span style={{ color: colors.primary }}>{player.id === 1 ? 'Z/C' : 'N/M'}</span>
-        </div>
-      </motion.div>
+      {!lowQuality && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.4 }}
+          whileHover={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          style={{
+            marginTop: 10,
+            fontSize: 10,
+            fontFamily: 'monospace',
+            color: '#666',
+            background: 'rgba(0,0,0,0.8)',
+            padding: '8px 10px',
+            borderRadius: 6,
+            border: '1px solid rgba(255,255,255,0.1)',
+            maxWidth: 140,
+          }}
+        >
+          <div style={{ marginBottom: 4, fontWeight: 700, color: '#999' }}>MOVES</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+            <span>Light</span>
+            <span style={{ color: colors.primary }}>{player.id === 1 ? 'Q/E' : 'U/O'}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>Heavy</span>
+            <span style={{ color: colors.primary }}>{player.id === 1 ? 'Z/C' : 'N/M'}</span>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };

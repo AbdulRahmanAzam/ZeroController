@@ -105,7 +105,13 @@ ONE_SHOT_GAME_ACTIONS = {"jump", "left_punch", "right_punch", "left_kick", "righ
 GAME_ACTION_HOLD_SECONDS = 0.20
 POSE_API_DEFAULT_HOST = "127.0.0.1"
 POSE_API_DEFAULT_PORT = 8000
-POSE_WS_PUSH_INTERVAL_SECONDS = 1.0 / 30.0
+POSE_WS_PUSH_INTERVAL_SECONDS = 1.0 / 60.0
+FAST_CONTROL_WINDOW_FRAMES = 5
+FAST_CONTROL_RELEASE_MS = 100
+FAST_CONTROL_MIN_VISIBILITY = 0.45
+FAST_MOVE_ON_THRESHOLD = 0.120
+FAST_MOVE_OFF_THRESHOLD = 0.060
+FAST_MOVEMENT_GAME_ACTIONS = {"idle", "move_forward", "move_backward"}
 
 LANDMARK_LEFT_SHOULDER = 11
 LANDMARK_RIGHT_SHOULDER = 12
@@ -375,6 +381,127 @@ class EarlyActionDetector:
         }
 
 
+class FastContinuousActionDetector:
+    """Low-latency path for held controls.
+
+    The classifier still owns one-shot actions and remains the fallback for
+    continuous actions, but movement cannot wait for the full 30-frame window:
+    old frames make start/stop feel sticky. This detector only looks at the
+    newest few frames and publishes a held command with hysteresis.
+    """
+
+    def __init__(
+        self,
+        *,
+        window_frames=FAST_CONTROL_WINDOW_FRAMES,
+        release_ms=FAST_CONTROL_RELEASE_MS,
+        min_visibility=FAST_CONTROL_MIN_VISIBILITY,
+    ):
+        self.window_frames = max(3, int(window_frames))
+        self.release_ms = int(release_ms)
+        self.min_visibility = float(min_visibility)
+        self.frames = deque(maxlen=self.window_frames)
+        self.timestamps = deque(maxlen=self.window_frames)
+        self.active_action = "idle"
+        self.active_score = 0.0
+        self.last_signal_ms = 0
+
+    def step(self, landmark_frame, timestamp_ms):
+        timestamp_ms = int(timestamp_ms)
+        self.frames.append(landmark_frame)
+        self.timestamps.append(timestamp_ms)
+
+        metrics = self._metrics()
+        if metrics is None:
+            return self._release_or_hold(timestamp_ms, reason="low_visibility")
+
+        move_signal = metrics["moveSignal"]
+        abs_move = abs(move_signal)
+        threshold = (
+            FAST_MOVE_OFF_THRESHOLD
+            if self.active_action in {"move_forward", "move_backward"}
+            else FAST_MOVE_ON_THRESHOLD
+        )
+        if abs_move >= threshold:
+            action = "move_forward" if move_signal > 0 else "move_backward"
+            score = min(0.99, max(0.01, abs_move / max(FAST_MOVE_ON_THRESHOLD, 1e-6)))
+            return self._activate(action, score, timestamp_ms, metrics)
+
+        return self._release_or_hold(timestamp_ms, reason="neutral", metrics=metrics)
+
+    def _activate(self, action, score, timestamp_ms, metrics):
+        self.active_action = action
+        self.active_score = float(score)
+        self.last_signal_ms = int(timestamp_ms)
+        return {
+            "action": action,
+            "confidence": float(score),
+            "active": action != "idle",
+            "metrics": metrics,
+            "reason": "signal",
+        }
+
+    def _release_or_hold(self, timestamp_ms, reason, metrics=None):
+        if self.active_action != "idle" and int(timestamp_ms) - self.last_signal_ms <= self.release_ms:
+            return {
+                "action": self.active_action,
+                "confidence": self.active_score,
+                "active": True,
+                "metrics": metrics or {},
+                "reason": reason,
+            }
+        self.active_action = "idle"
+        self.active_score = 1.0
+        return {
+            "action": "idle",
+            "confidence": 1.0,
+            "active": False,
+            "metrics": metrics or {},
+            "reason": reason,
+        }
+
+    def _metrics(self):
+        if len(self.frames) < 3:
+            return None
+
+        first = self.frames[0]
+        last = self.frames[-1]
+        required = [
+            LANDMARK_LEFT_SHOULDER,
+            LANDMARK_RIGHT_SHOULDER,
+            LANDMARK_LEFT_HIP,
+            LANDMARK_RIGHT_HIP,
+        ]
+        visibility = min(float(last[idx, 3]) for idx in required)
+        if visibility < self.min_visibility:
+            return None
+
+        scale = _torso_scale(last)
+        if scale <= 1e-5:
+            return None
+
+        dt_ms = max(1, int(self.timestamps[-1]) - int(self.timestamps[0]))
+        first_center = _body_center(first)
+        last_center = _body_center(last)
+        displacement_x = float(last_center[0] - first_center[0]) / scale
+        velocity_signal = displacement_x * (1000.0 / dt_ms) / 30.0
+
+        shoulder_center = (last[LANDMARK_LEFT_SHOULDER, :2] + last[LANDMARK_RIGHT_SHOULDER, :2]) * 0.5
+        hip_center = (last[LANDMARK_LEFT_HIP, :2] + last[LANDMARK_RIGHT_HIP, :2]) * 0.5
+        lean_signal = float(shoulder_center[0] - hip_center[0]) / scale
+
+        # Blend movement and lean. Velocity gives fast starts; lean keeps a held
+        # step alive between small camera-frame movements.
+        move_signal = (0.70 * velocity_signal) + (0.30 * lean_signal)
+
+        return {
+            "visibility": visibility,
+            "moveSignal": float(move_signal),
+            "velocitySignal": float(velocity_signal),
+            "leanSignal": float(lean_signal),
+        }
+
+
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 def _create_landmarker(model_path):
@@ -417,6 +544,15 @@ def _torso_scale(frame):
     if scale <= 1e-5:
         scale = float(np.linalg.norm(frame[LANDMARK_LEFT_SHOULDER, :2] - frame[LANDMARK_RIGHT_SHOULDER, :2]))
     return max(scale, 1e-5)
+
+
+def _body_center(frame):
+    return (
+        frame[LANDMARK_LEFT_SHOULDER, :2]
+        + frame[LANDMARK_RIGHT_SHOULDER, :2]
+        + frame[LANDMARK_LEFT_HIP, :2]
+        + frame[LANDMARK_RIGHT_HIP, :2]
+    ) * 0.25
 
 
 def _joint_distance(frame, a_idx, b_idx):
@@ -604,6 +740,9 @@ class PoseApiState:
             "stableAction": None,
             "triggered": False,
             "triggerSource": None,
+            "controlSource": None,
+            "fastAction": None,
+            "inputAgeMs": 0.0,
             "eventId": 0,
             "timestamp": now_ms,
             "bufferFill": 0,
@@ -637,6 +776,9 @@ class PoseApiState:
         fps,
         model_type,
         trigger_source=None,
+        control_source=None,
+        fast_action=None,
+        input_age_ms=0.0,
         capture_age_ms=0.0,
         pipeline_latency_ms=0.0,
         latency_stats=None,
@@ -689,6 +831,9 @@ class PoseApiState:
                 "stableAction": published_stable_action,
                 "triggered": published_triggered,
                 "triggerSource": published_trigger_source,
+                "controlSource": control_source,
+                "fastAction": fast_action,
+                "inputAgeMs": float(input_age_ms),
                 "eventId": published_event_id,
                 "timestamp": int(now * 1000),
                 "bufferFill": int(buffer_fill),
@@ -934,6 +1079,52 @@ def _run_self_test():
         result = low_vis.step(make_pose(wrist_x, visibility=0.2), i * 33)
     assert result is None, result
 
+    def make_center_pose(center_x, lean=0.0, guard=False, visibility=1.0):
+        pose = np.zeros((33, 4), dtype=np.float32)
+        pose[:, 3] = visibility
+        shoulder_y = 0.42
+        hip_y = 0.75
+        shoulder_center_x = center_x + lean
+        hip_center_x = center_x
+        pose[LANDMARK_LEFT_SHOULDER] = [shoulder_center_x - 0.08, shoulder_y, 0.0, visibility]
+        pose[LANDMARK_RIGHT_SHOULDER] = [shoulder_center_x + 0.08, shoulder_y, 0.0, visibility]
+        pose[LANDMARK_LEFT_HIP] = [hip_center_x - 0.06, hip_y, 0.0, visibility]
+        pose[LANDMARK_RIGHT_HIP] = [hip_center_x + 0.06, hip_y, 0.0, visibility]
+        pose[LANDMARK_LEFT_ELBOW] = [shoulder_center_x - 0.10, 0.52, 0.0, visibility]
+        pose[LANDMARK_RIGHT_ELBOW] = [shoulder_center_x + 0.10, 0.52, 0.0, visibility]
+        if guard:
+            pose[LANDMARK_LEFT_WRIST] = [shoulder_center_x + 0.04, 0.55, 0.0, visibility]
+            pose[LANDMARK_RIGHT_WRIST] = [shoulder_center_x - 0.04, 0.55, 0.0, visibility]
+        else:
+            pose[LANDMARK_LEFT_WRIST] = [shoulder_center_x - 0.18, 0.58, 0.0, visibility]
+            pose[LANDMARK_RIGHT_WRIST] = [shoulder_center_x + 0.18, 0.58, 0.0, visibility]
+        return pose
+
+    fast_move = FastContinuousActionDetector(window_frames=5, release_ms=100)
+    action = None
+    for i, center_x in enumerate([0.50, 0.56, 0.63]):
+        action = fast_move.step(make_center_pose(center_x), i * 33)
+    assert action["action"] == "move_forward", action
+    hold = fast_move.step(make_center_pose(0.63), 99)
+    assert hold["action"] == "move_forward", hold
+    released = fast_move.step(make_center_pose(0.63), 231)
+    assert released["action"] == "idle", released
+
+    fast_back = FastContinuousActionDetector(window_frames=5, release_ms=100)
+    for i, center_x in enumerate([0.63, 0.56, 0.50]):
+        action = fast_back.step(make_center_pose(center_x), i * 33)
+    assert action["action"] == "move_backward", action
+
+    fast_guard = FastContinuousActionDetector(window_frames=5, release_ms=100)
+    for i in range(3):
+        action = fast_guard.step(make_center_pose(0.50, guard=True), i * 33)
+    assert action["action"] == "idle", action
+
+    low_vis_fast = FastContinuousActionDetector(window_frames=5, release_ms=100)
+    for i, center_x in enumerate([0.50, 0.53, 0.57]):
+        action = low_vis_fast.step(make_center_pose(center_x, visibility=0.2), i * 33)
+    assert action["action"] == "idle", action
+
     print("[SELF-TEST] run_model bridge checks passed.")
 
 
@@ -1081,6 +1272,10 @@ def main(argv=None):
         min_extension_delta=EARLY_PUNCH_MIN_EXTENSION_DELTA,
         cooldown_ms=EARLY_ACTION_COOLDOWN_MS,
     )
+    fast_control = FastContinuousActionDetector(
+        window_frames=FAST_CONTROL_WINDOW_FRAMES,
+        release_ms=FAST_CONTROL_RELEASE_MS,
+    )
 
     # Gate turns noisy per-frame predictions into clean game triggers.
     gate = ActionGate(
@@ -1105,6 +1300,8 @@ def main(argv=None):
     stable_label   = None
     triggered      = False
     trigger_source = None
+    control_source = None
+    fast_action = None
     last_triggered = None
     prev_t         = time.time()
     fps            = 0.0
@@ -1164,12 +1361,16 @@ def main(argv=None):
             publish_stable_label = stable_label
             triggered = False
             trigger_source = None
+            control_source = None
+            fast_action = None
 
             if landmark_frame is not None:
                 # Store the raw (33, 4) frame — preprocessing happens at inference.
                 frame_buffer.append(landmark_frame)
 
                 gate_start_ns = time.perf_counter_ns()
+                fast_result = fast_control.step(landmark_frame, frame_ts_ms)
+                fast_action = fast_result["action"] if fast_result else None
                 early_result = early_detector.step(landmark_frame, frame_ts_ms)
                 early_triggered = False
                 early_label = None
@@ -1217,6 +1418,7 @@ def main(argv=None):
                     publish_stable_label = early_label
                     triggered = True
                     trigger_source = "early"
+                    control_source = "early"
                     last_triggered = early_label
                     trigger_counts["early"] += 1
                     global_one_shot_cooldown_until_ms = frame_ts_ms + EARLY_ACTION_COOLDOWN_MS
@@ -1227,21 +1429,31 @@ def main(argv=None):
                     publish_stable_label = stable_label
                     triggered = True
                     trigger_source = "classifier"
+                    control_source = "classifier"
                     last_triggered = stable_label
                     trigger_counts["classifier"] += 1
                     if _to_game_action(stable_label) in ONE_SHOT_GAME_ACTIONS:
                         global_one_shot_cooldown_until_ms = frame_ts_ms + PREDICT_TRIGGER_COOLDOWN_MS
                     print(f"[TRIGGER][classifier] {stable_label}  (conf={confidence:.2f})")
+                elif fast_action in FAST_MOVEMENT_GAME_ACTIONS:
+                    publish_prediction = fast_action
+                    publish_confidence = fast_result["confidence"]
+                    publish_stable_label = fast_action
+                    control_source = "fast_movement"
                 else:
                     publish_prediction = prediction
                     publish_confidence = confidence
                     publish_stable_label = stable_label
+                    if publish_stable_label:
+                        control_source = "classifier"
 
                 latency_stats.add("gate", _elapsed_ms(gate_start_ns))
             else:
                 stable_label = None
                 triggered = False
                 publish_stable_label = None
+                fast_action = None
+                control_source = None
 
             # FPS
             now = time.time()
@@ -1267,6 +1479,9 @@ def main(argv=None):
                     capture_age_ms=capture_age_ms,
                     pipeline_latency_ms=pipeline_latency_ms,
                     latency_stats=latency_snapshot,
+                    fast_action=fast_action,
+                    control_source=control_source,
+                    input_age_ms=capture_age_ms,
                     status="no_pose",
                     message="No pose detected. Step into the camera view.",
                 )
@@ -1282,6 +1497,9 @@ def main(argv=None):
                     capture_age_ms=capture_age_ms,
                     pipeline_latency_ms=pipeline_latency_ms,
                     latency_stats=latency_snapshot,
+                    fast_action=fast_action,
+                    control_source=control_source,
+                    input_age_ms=capture_age_ms,
                     status="warming_up",
                     message="Collecting the first pose frames for Player 1 control.",
                 )
@@ -1298,6 +1516,9 @@ def main(argv=None):
                     capture_age_ms=capture_age_ms,
                     pipeline_latency_ms=pipeline_latency_ms,
                     latency_stats=latency_snapshot,
+                    fast_action=fast_action,
+                    control_source=control_source,
+                    input_age_ms=capture_age_ms,
                 )
             latency_stats.add("publish", _elapsed_ms(publish_start_ns))
 

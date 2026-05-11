@@ -1,10 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { QualityMode } from '../types/game';
 
 interface ComboCounterProps {
   comboCount: number;
   position: 'left' | 'right';
   damageDealt?: number;
+  quality?: QualityMode;
 }
 
 // Deterministic value generation - stable across renders
@@ -23,7 +25,10 @@ export const ComboCounter: React.FC<ComboCounterProps> = ({
   comboCount,
   position,
   damageDealt = 0,
+  quality = 'high',
 }) => {
+  const reducedEffects = quality !== 'high';
+  const lowQuality = quality === 'low';
   const getComboText = () => {
     if (comboCount >= 10) return 'AMAZING!';
     if (comboCount >= 7) return 'GREAT!';
@@ -46,7 +51,7 @@ export const ComboCounter: React.FC<ComboCounterProps> = ({
       fontWeight: 900 as const,
       fontFamily: 'Bebas Neue, Impact, sans-serif',
       color: colors.main,
-      textShadow: `
+      textShadow: lowQuality ? '2px 2px 4px rgba(0,0,0,0.9)' : `
         0 0 30px ${colors.glow},
         0 0 60px ${colors.glow},
         4px 4px 8px rgba(0,0,0,0.9),
@@ -60,7 +65,7 @@ export const ComboCounter: React.FC<ComboCounterProps> = ({
       fontWeight: 900 as const,
       fontFamily: 'Bebas Neue, sans-serif',
       color: colors.glow,
-      textShadow: `0 0 20px ${colors.main}, 2px 2px 4px rgba(0,0,0,0.9)`,
+      textShadow: lowQuality ? '2px 2px 4px rgba(0,0,0,0.9)' : `0 0 20px ${colors.main}, 2px 2px 4px rgba(0,0,0,0.9)`,
       letterSpacing: 4,
     },
   };
@@ -88,7 +93,7 @@ export const ComboCounter: React.FC<ComboCounterProps> = ({
       >
         {/* Combo Number - Skull Girls Style */}
         <motion.div
-          animate={{
+          animate={reducedEffects ? undefined : {
             scale: [1, 1.15, 1],
             rotate: [0, 5, -5, 0],
           }}
@@ -151,7 +156,7 @@ export const ComboCounter: React.FC<ComboCounterProps> = ({
         )}
 
         {/* Energy particles - optimized */}
-        {ENERGY_PARTICLES.map((particle, i) => (
+        {!reducedEffects && ENERGY_PARTICLES.map((particle, i) => (
           <motion.div
             key={i}
             initial={{

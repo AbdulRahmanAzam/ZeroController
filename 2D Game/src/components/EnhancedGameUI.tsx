@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SoundManager } from '../audio/SoundManager';
 import { VictoryScreen } from './VictoryScreen';
-import type { MatchHistory, PlayerOneControlMode } from '../types/game';
+import type { MatchHistory, PlayerOneControlMode, QualityMode } from '../types/game';
 import type { PoseInputStatus } from '../hooks/usePoseInput';
 
 interface EnhancedGameUIProps {
@@ -20,6 +20,7 @@ interface EnhancedGameUIProps {
   matchHistory?: MatchHistory;
   player1ControlMode?: PlayerOneControlMode;
   poseStatus?: PoseInputStatus;
+  quality?: QualityMode;
 }
 
 // Wrapper for button click with sound
@@ -41,6 +42,7 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
   matchHistory,
   player1ControlMode = 'keyboard',
   poseStatus,
+  quality = 'high',
 }) => {
   const zeroControllerSelected = player1ControlMode === 'zero_controller';
   const poseConnected = poseStatus?.connection === 'connected';
@@ -249,7 +251,7 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
                         {poseConnected ? 'READY' : 'WAIT'}
                       </div>
                       <div style={{ color: '#777', fontSize: 11, fontFamily: 'monospace', marginTop: 4, whiteSpace: 'nowrap' }}>
-                        {(poseStatus?.action ?? 'idle').replace('_', ' ')} · {Math.round((poseStatus?.confidence ?? 0) * 100)}%
+                        {(poseStatus?.action ?? 'idle').replace('_', ' ')} · {Math.round((poseStatus?.confidence ?? 0) * 100)}% · {quality.toUpperCase()}
                       </div>
                     </div>
                   </div>
@@ -257,7 +259,7 @@ export const EnhancedGameUI: React.FC<EnhancedGameUIProps> = ({
                     <motion.div
                       animate={{ width: `${Math.round(poseProgress * 100)}%` }}
                       style={{ height: '100%', background: poseConnected ? 'linear-gradient(90deg, #3498db, #2ecc71)' : 'linear-gradient(90deg, #7f8c8d, #f39c12)' }}
-                    />1``
+                    />
                   </div>
                 </motion.div>
               )}

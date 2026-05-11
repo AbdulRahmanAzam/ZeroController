@@ -1,5 +1,13 @@
 """Configuration for ZeroController pose visualization and data collection."""
 
+import os
+
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
+def _root_path(*parts):
+    return os.path.join(_PROJECT_ROOT, *parts)
+
 # Camera settings
 CAMERA_INDEX = 0
 CAMERA_WIDTH = 640   # 640×480 is faster for MediaPipe than 1280×720 → higher real FPS
@@ -12,14 +20,14 @@ CAMERA_FOURCC = "MJPG"       # Prefer MJPG when the webcam/backend supports it.
 LOW_LATENCY_CAMERA = True    # Drop stale webcam frames instead of processing backlog.
 
 # MediaPipe Pose Landmarker (Tasks API)
-POSE_MODEL_PATH = "models/pose_landmarker_full.task"
+POSE_MODEL_PATH = _root_path("models", "pose_landmarker_full.task")
 POSE_MODEL_URL = (
     "https://storage.googleapis.com/mediapipe-models/pose_landmarker/"
     "pose_landmarker_full/float16/1/pose_landmarker_full.task"
 )
 POSE_MODEL_VARIANTS = {
     "lite": {
-        "path": "models/pose_landmarker_lite.task",
+        "path": _root_path("models", "pose_landmarker_lite.task"),
         "url": (
             "https://storage.googleapis.com/mediapipe-models/pose_landmarker/"
             "pose_landmarker_lite/float16/1/pose_landmarker_lite.task"
@@ -30,7 +38,7 @@ POSE_MODEL_VARIANTS = {
         "url": POSE_MODEL_URL,
     },
     "heavy": {
-        "path": "models/pose_landmarker_heavy.task",
+        "path": _root_path("models", "pose_landmarker_heavy.task"),
         "url": (
             "https://storage.googleapis.com/mediapipe-models/pose_landmarker/"
             "pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task"
@@ -56,7 +64,7 @@ TEXT_COLOR = (255, 255, 255)
 POINT_RADIUS = 3
 
 # --- Data collection ---
-DATA_DIR = "data/raw"
+DATA_DIR = _root_path("data", "raw")
 SEQUENCE_LENGTH = 30          # frames per sample (~1 sec at 30 fps)
 
 # The 9 in-game actions. Order matters: the classifier's output index maps
@@ -74,7 +82,8 @@ ACTIONS = [
 ]
 
 # --- Training ---
-MODEL_SAVE_PATH = "models/action_classifier_gru.pth"
+# MODEL_SAVE_PATH = _root_path("data", "models", "action_classifier_poseconv1d_split.pth")
+MODEL_SAVE_PATH = _root_path("data", "models", "action_classifier_stgcn_split.pth")
 EPOCHS = 120
 BATCH_SIZE = 8
 LEARNING_RATE = 1e-3
@@ -85,7 +94,7 @@ DROPOUT = 0.3               # applied in TCN, LSTM, and STGCN heads
 #           Uses the body skeleton as a graph — best for skeleton data.
 # "tcn"   → Temporal Convolutional Network (fast baseline, parallel over time).
 # "lstm"  → Vanilla LSTM (simplest baseline).
-MODEL_TYPE = "stgcn"
+MODEL_TYPE = "gru"
 
 # LSTM params (used when MODEL_TYPE = "lstm")
 HIDDEN_SIZE = 64

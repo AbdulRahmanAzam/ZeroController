@@ -1,5 +1,32 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { atlasCache, imageReadyCache, type Frame, type SpriteAtlas } from './spriteAssets';
+
+type SpriteClockSubscriber = (now: number) => void;
+
+const spriteClockSubscribers = new Set<SpriteClockSubscriber>();
+let spriteClockFrame: number | null = null;
+
+function tickSpriteClock(now: number) {
+  spriteClockSubscribers.forEach((subscriber) => subscriber(now));
+  spriteClockFrame = spriteClockSubscribers.size > 0
+    ? requestAnimationFrame(tickSpriteClock)
+    : null;
+}
+
+function subscribeSpriteClock(subscriber: SpriteClockSubscriber) {
+  spriteClockSubscribers.add(subscriber);
+  if (spriteClockFrame === null) {
+    spriteClockFrame = requestAnimationFrame(tickSpriteClock);
+  }
+
+  return () => {
+    spriteClockSubscribers.delete(subscriber);
+    if (spriteClockSubscribers.size === 0 && spriteClockFrame !== null) {
+      cancelAnimationFrame(spriteClockFrame);
+      spriteClockFrame = null;
+    }
+  };
+}
 
 interface SpriteSheetProps {
   atlasPath: string;
@@ -31,6 +58,9 @@ export const SpriteSheet: React.FC<SpriteSheetProps> = ({
   const [currentFrame, setCurrentFrame] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(() => imageReadyCache.has(imagePath));
   const safeFrameRate = Math.max(1, Math.min(frameRate, 30));
+  const animationStartRef = useRef(0);
+  const completedRef = useRef(false);
+  const lastFrameRef = useRef(-1);
 
   // Load atlas JSON — skips the fetch if already in cache
   useEffect(() => {
@@ -130,35 +160,37 @@ export const SpriteSheet: React.FC<SpriteSheetProps> = ({
     };
   }, [atlas]);
 
-  // Animate frames using interval - resets when animation changes
+  // Animate frames from one shared RAF clock instead of one interval per sprite.
   useEffect(() => {
     if (frames.length === 0) return;
 
-    // Start from frame 0 for new animation
-    let localFrame = 0;
-    
-    // Set initial frame immediately via timeout (callback-based)
-    const initTimeout = setTimeout(() => {
-      setCurrentFrame(0);
-    }, 0);
+    animationStartRef.current = performance.now();
+    completedRef.current = false;
+    lastFrameRef.current = 0;
 
-    const interval = setInterval(() => {
-      localFrame += 1;
-      if (localFrame >= frames.length) {
-        if (!loop) {
-          clearInterval(interval);
-          onComplete?.();
-          return;
+    return subscribeSpriteClock((now) => {
+      const elapsed = Math.max(0, now - animationStartRef.current);
+      const rawFrame = Math.floor((elapsed / 1000) * safeFrameRate);
+
+      if (!loop && rawFrame >= frames.length) {
+        const finalFrame = frames.length - 1;
+        if (lastFrameRef.current !== finalFrame) {
+          lastFrameRef.current = finalFrame;
+          setCurrentFrame(finalFrame);
         }
-        localFrame = 0;
+        if (!completedRef.current) {
+          completedRef.current = true;
+          onComplete?.();
+        }
+        return;
       }
-      setCurrentFrame(localFrame);
-    }, 1000 / safeFrameRate);
 
-    return () => {
-      clearTimeout(initTimeout);
-      clearInterval(interval);
-    };
+      const nextFrame = loop ? rawFrame % frames.length : Math.min(rawFrame, frames.length - 1);
+      if (lastFrameRef.current !== nextFrame) {
+        lastFrameRef.current = nextFrame;
+        setCurrentFrame(nextFrame);
+      }
+    });
   }, [animation, frames.length, safeFrameRate, loop, onComplete, frameOffset]);
 
   const isReady = atlas !== null && frames.length > 0;
@@ -266,19 +298,21 @@ export const SimpleSprite: React.FC<SimpleSpriteProps> = ({
 }) => {
   const [currentFrame, setCurrentFrame] = useState(0);
   const safeFrameRate = Math.max(1, Math.min(frameRate, 30));
+  const animationStartRef = useRef(0);
+  const lastFrameRef = useRef(-1);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentFrame(prev => {
-        const next = prev + 1;
-        if (next >= frameCount) {
-          return loop ? 0 : prev;
-        }
-        return next;
-      });
-    }, 1000 / safeFrameRate);
-
-    return () => clearInterval(interval);
+    animationStartRef.current = performance.now();
+    lastFrameRef.current = 0;
+    return subscribeSpriteClock((now) => {
+      const elapsed = Math.max(0, now - animationStartRef.current);
+      const rawFrame = Math.floor((elapsed / 1000) * safeFrameRate);
+      const nextFrame = loop ? rawFrame % frameCount : Math.min(rawFrame, frameCount - 1);
+      if (lastFrameRef.current !== nextFrame) {
+        lastFrameRef.current = nextFrame;
+        setCurrentFrame(nextFrame);
+      }
+    });
   }, [frameCount, safeFrameRate, loop]);
 
   return (

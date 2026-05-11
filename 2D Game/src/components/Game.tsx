@@ -12,6 +12,7 @@ import { useGameLoop } from '../hooks/useGameLoop';
 import { useKeyboardInput } from '../hooks/useKeyboardInput';
 import { usePoseInput } from '../hooks/usePoseInput';
 import { useAIInput } from '../hooks/useAIInput';
+import { useAdaptiveQuality } from '../hooks/useAdaptiveQuality';
 import { useGameStore } from '../store/gameStore';
 import { SoundManager } from '../audio/SoundManager';
 import { sendSession } from '../services/analyticsService';
@@ -77,7 +78,10 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
   });
   const prevGameStatus = useRef(gameStatus);
   const isZeroControllerMode = player1ControlMode === 'zero_controller';
-  const gameLoopTargetFPS = isZeroControllerMode ? 30 : 60;
+  const gameLoopTargetFPS = 60;
+  const quality = useAdaptiveQuality({
+    enabled: isZeroControllerMode && gameStatus === 'playing',
+  });
 
   // Initialize SoundManager on mount
   useEffect(() => {
@@ -271,13 +275,13 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
 
   // Memoized screen shake calculation - stable reference
   const shakeOffset = useMemo(() => {
-    if (screenShake <= 0) return { x: 0, y: 0 };
+    if (screenShake <= 0 || quality === 'low') return { x: 0, y: 0 };
     const seed = (player1.x + player2.x + roundTime) * 0.001;
     return {
       x: Math.sin(seed * 70) * screenShake,
       y: Math.cos(seed * 110) * screenShake * 0.65
     };
-  }, [screenShake, player1.x, player2.x, roundTime]);
+  }, [screenShake, player1.x, player2.x, roundTime, quality]);
 
   // Calculate responsive font sizes based on viewport
   const responsiveSizes = useMemo(() => {
@@ -316,10 +320,10 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
           background: 'transparent',
         }}
       >
-        <EnhancedArena performanceMode={isZeroControllerMode}>
+        <EnhancedArena performanceMode={isZeroControllerMode} quality={quality}>
           {/* Players */}
-          <EnhancedFighter player={player1} />
-          <EnhancedFighter player={player2} />
+          <EnhancedFighter player={player1} quality={quality} />
+          <EnhancedFighter player={player2} quality={quality} />
 
           {/* Hit effects */}
           <AnimatePresence>
@@ -327,6 +331,7 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
               <HitEffects
                 player={showHitEffect.player}
                 type={showHitEffect.type}
+                quality={quality}
                 position={{
                   x: showHitEffect.player === 1 ? player1.x + 50 : player2.x + 50,
                   y: showHitEffect.player === 1 ? player1.y + 50 : player2.y + 50,
@@ -340,12 +345,12 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
           <EnhancedHealthBar player={player2} position="right" />
 
           {/* Combo counters - new enhanced version */}
-          <ComboCounter comboCount={player1.comboCount} position="left" damageDealt={player1.specialMeter > 0 ? player1.comboCount * 8 : 0} />
-          <ComboCounter comboCount={player2.comboCount} position="right" damageDealt={player2.specialMeter > 0 ? player2.comboCount * 8 : 0} />
+          <ComboCounter comboCount={player1.comboCount} position="left" damageDealt={player1.specialMeter > 0 ? player1.comboCount * 8 : 0} quality={quality} />
+          <ComboCounter comboCount={player2.comboCount} position="right" damageDealt={player2.specialMeter > 0 ? player2.comboCount * 8 : 0} quality={quality} />
 
           {/* Special move indicators */}
-          <SpecialMoveIndicator player={player1} position="left" />
-          <SpecialMoveIndicator player={player2} position="right" />
+          <SpecialMoveIndicator player={player1} position="left" quality={quality} />
+          <SpecialMoveIndicator player={player2} position="right" quality={quality} />
 
           {/* Round indicator - Tekken style */}
           {gameStatus === 'playing' && (
@@ -562,6 +567,7 @@ export const Game: React.FC<{ onGoToMenu?: () => void }> = ({ onGoToMenu }) => {
             matchHistory={matchHistory}
             player1ControlMode={player1ControlMode}
             poseStatus={poseStatus}
+            quality={quality}
           />
         </EnhancedArena>
       </motion.div>
