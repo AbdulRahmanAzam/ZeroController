@@ -49,8 +49,7 @@ npm run dev
 wait screen will stay locked until `scripts/run_model.py` is connected.
 
 Files (brief, bullet points)
-- `config.py`: global constants — camera options, MediaPipe model path/URL,
-  data paths, sequence length, and training hyperparameters.
+- `config.py`: global constants — camera options, MediaPipe model path/URL, data paths, sequence length, and training hyperparameters.
 - `camera_utils.py`: robust webcam open + backend fallback helpers (Windows-ready).
 - `scripts/main.py`: pose visualizer, model downloader (`ensure_pose_model`), drawing HUD.
 - `scripts/collect_data.py`: interactive recorder that saves sequences to `data/raw/<label>/`.
@@ -61,25 +60,7 @@ Files (brief, bullet points)
 - `models/`: contains the MediaPipe `.task` and any saved PyTorch checkpoints.
 - `data/raw/`: folder for collected .npy sequences organized by label.
 
-Progress (what's done)
-- Pose visualizer implemented and downloads `pose_landmarker_full.task` when needed.
-- Data collection UI and HUD implemented; sample files exist under `data/raw/`.
-- `scripts/augment_data.py` available and mirrors `right_punch` → `left_punch`.
-- Training script and live-runner exist; `models/punch_classifier.pth` found in repo.
-
-Remaining / recommended next steps
-- Gather more labeled sequences for each action (raise dataset size & balance).
-- Confirm training config vs saved checkpoint paths (resolve `MODEL_SAVE_PATH` mismatch).
-- Add evaluation metrics and a validation script / confusion matrix output.
-- Improve robustness: model export (TorchScript/ONNX), lower-latency inference.
-- Add unit tests or a simple demo video + instructions for reproducibility.
-
 Notes & quick tips
 - On Windows prefer `CAMERA_BACKEND = "msmf"`; `camera_utils.py` will fallback.
 - If OpenCV GUI calls fail, install a GUI-enabled OpenCV (`opencv-contrib-python`) not headless.
 - The collect script header documents keyboard controls (SPACE, 1-9, A, L, Q).
-
-If you want, I can also:
-- run a quick static check and fix small config typos, or
-- open a short CONTRIBUTING or USAGE example with screenshots.
-
