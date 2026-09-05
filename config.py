@@ -1,7 +1,7 @@
 """Configuration for ZeroController pose visualization and data collection."""
 
 # Camera settings
-CAMERA_INDEX = 0
+CAMERA_INDEX = 1  # index 0 = Camo/EShare virtual cam (outputs black); 1 = real HP Wide Vision webcam
 CAMERA_WIDTH = 640   # 640×480 is faster for MediaPipe than 1280×720 → higher real FPS
 CAMERA_HEIGHT = 480
 CAMERA_TARGET_FPS = 30
@@ -58,6 +58,7 @@ POINT_RADIUS = 3
 # --- Data collection ---
 DATA_DIR = "data/raw"
 SEQUENCE_LENGTH = 30          # frames per sample (~1 sec at 30 fps)
+SEQUENCE_WINDOW_MS = 1000     # real-time span SEQUENCE_LENGTH frames represent
 
 # The 9 in-game actions. Order matters: the classifier's output index maps
 # back to this list, so keep the order consistent across training runs.
@@ -74,7 +75,10 @@ ACTIONS = [
 ]
 
 # --- Training ---
-MODEL_SAVE_PATH = "models/action_classifier_gru.pth"
+# train_model.py writes models/action_classifier_<MODEL_TYPE>.pth, so this must
+# track MODEL_TYPE below or run_model.py will happily load a stale checkpoint of
+# a different architecture.
+MODEL_SAVE_PATH = "models/action_classifier_stgcn.pth"
 EPOCHS = 120
 BATCH_SIZE = 8
 LEARNING_RATE = 1e-3
@@ -135,6 +139,32 @@ PREDICT_STABLE_FRAMES = 2             # was 3 — saves ~1 frame of gate delay
 # After a non-idle action triggers, wait this many milliseconds before allowing
 # another non-idle trigger. Time-based cooldown keeps behavior stable at 30/60 FPS.
 PREDICT_TRIGGER_COOLDOWN_MS = 170
+
+# ── Frame-rate independence ──────────────────────────────────────────────────
+# The training set was recorded at 30 fps, so a 30-frame sample spans 1 second.
+# Live capture rarely holds 30 fps (browser + servers compete for CPU), and a
+# raw 30-frame buffer at 10 fps spans 3 seconds instead — a punch shrinks from
+# ~9 frames to ~3 and the classifier stops recognising it.
+#
+# With this on, the runtime keeps timestamped landmarks and resamples the last
+# SEQUENCE_WINDOW_MS into exactly SEQUENCE_LENGTH evenly spaced frames, so the
+# model sees the same time span at any capture rate. At a true 30 fps the
+# resampling is a near no-op, so this never hurts the good case.
+RESAMPLE_TO_FIXED_WINDOW = True
+RAW_BUFFER_MAXLEN = 150       # timestamped frames retained (5 s at 30 fps)
+
+# ── CPU scheduling (Windows P-core / E-core split) ───────────────────────────
+# On hybrid Intel CPUs (12th gen+) Windows parks unfocused console processes on
+# the efficiency cores, which run roughly half as fast. Once you click into the
+# game window, this process gets demoted and MediaPipe latency doubles. Pinning
+# to the performance cores keeps pose detection off the E-cores.
+PIN_TO_PERFORMANCE_CORES = True
+# "normal" | "above" | "high". "above" wins CPU against the browser without
+# starving the UI; "high" is more aggressive and can make the desktop stutter.
+PROCESS_PRIORITY = "above"
+# MediaPipe already runs multi-threaded; letting torch grab every core makes the
+# two fight. The classifier is ~2 ms, so it does not need the cores.
+TORCH_NUM_THREADS = 2
 
 # Fast partial-motion path for one-shot game inputs. The ST-GCN still runs as
 # the high-confidence fallback once the full 30-frame window is available.

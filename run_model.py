@@ -16,9 +16,11 @@ Run:  python run_model.py
 """
 
 import argparse
+import ctypes
 import math
 import os
 import socket
+import struct
 import sys
 import threading
 
@@ -70,12 +72,18 @@ from config import (
     POSE_MODEL_VARIANTS,
     POSE_MODEL_URL,
     POSE_NUM_POSES,
+    PIN_TO_PERFORMANCE_CORES,
     PREDICT_CONFIDENCE_THRESHOLD,
     PREDICT_STABLE_FRAMES,
     PREDICT_TRIGGER_COOLDOWN_MS,
+    PROCESS_PRIORITY,
+    RAW_BUFFER_MAXLEN,
+    RESAMPLE_TO_FIXED_WINDOW,
     SEQUENCE_LENGTH,
+    SEQUENCE_WINDOW_MS,
     SHOW_CONNECTIONS,
     TEXT_COLOR,
+    TORCH_NUM_THREADS,
 )
 from main import POSE_CONNECTIONS, ensure_pose_model
 from train_model import (
@@ -136,6 +144,48 @@ def _elapsed_ms(start_ns):
     return (time.perf_counter_ns() - start_ns) / 1_000_000.0
 
 
+def _is_notebook_session():
+    try:
+        from IPython import get_ipython
+    except Exception:
+        return False
+
+    shell = get_ipython()
+    if shell is None:
+        return False
+    return shell.__class__.__name__ in {"ZMQInteractiveShell", "Shell"}
+
+
+class NotebookFrameDisplay:
+    """Inline JPEG display for notebooks where cv2.imshow is unreliable."""
+
+    def __init__(self, max_fps=12):
+        from IPython.display import Image, clear_output, display
+
+        self._image_cls = Image
+        self._clear_output = clear_output
+        self._display = display
+        self._min_interval = 1.0 / max(1, max_fps)
+        self._last_show_t = 0.0
+
+    def show(self, frame):
+        now = time.monotonic()
+        if now - self._last_show_t < self._min_interval:
+            return True
+
+        ok, encoded = cv2.imencode(".jpg", frame)
+        if not ok:
+            return False
+
+        self._clear_output(wait=True)
+        self._display(self._image_cls(data=encoded.tobytes()))
+        self._last_show_t = now
+        return True
+
+    def close(self):
+        self._clear_output(wait=True)
+
+
 def _percentile(values, pct):
     if not values:
         return 0.0
@@ -149,6 +199,128 @@ def _resolve_pose_model(variant):
     if spec is None:
         return POSE_MODEL_PATH, POSE_MODEL_URL
     return spec["path"], spec["url"]
+
+
+_RELATION_PROCESSOR_CORE = 0
+_GROUP_AFFINITY_SIZE = 16          # KAFFINITY (8) + Group (2) + Reserved[3] (6)
+_PROCESSOR_REL_GROUP_COUNT = 22    # byte offset of GroupCount inside PROCESSOR_RELATIONSHIP
+_PROCESSOR_REL_GROUP_MASK = 24     # byte offset of the GROUP_AFFINITY array
+
+_PRIORITY_CLASSES = {
+    "normal": 0x00000020,   # NORMAL_PRIORITY_CLASS
+    "above":  0x00008000,   # ABOVE_NORMAL_PRIORITY_CLASS
+    "high":   0x00000080,   # HIGH_PRIORITY_CLASS
+}
+
+
+def _detect_performance_cores():
+    """Logical CPU indices of the performance cores, or None if not applicable.
+
+    Hybrid Intel CPUs report an EfficiencyClass per physical core: higher means
+    a P-core. On a uniform CPU every core shares one class and we return None so
+    the caller skips pinning entirely.
+    """
+    if sys.platform != "win32":
+        return None
+    try:
+        from ctypes import wintypes
+
+        kernel32 = ctypes.windll.kernel32
+        kernel32.GetLogicalProcessorInformationEx.argtypes = [
+            ctypes.c_int, ctypes.c_void_p, ctypes.POINTER(wintypes.DWORD),
+        ]
+        kernel32.GetLogicalProcessorInformationEx.restype = wintypes.BOOL
+
+        length = wintypes.DWORD(0)
+        kernel32.GetLogicalProcessorInformationEx(
+            _RELATION_PROCESSOR_CORE, None, ctypes.byref(length),
+        )
+        if not length.value:
+            return None
+        buffer = (ctypes.c_ubyte * length.value)()
+        if not kernel32.GetLogicalProcessorInformationEx(
+            _RELATION_PROCESSOR_CORE, buffer, ctypes.byref(length),
+        ):
+            return None
+
+        raw = bytes(buffer)
+        by_class = {}
+        offset = 0
+        while offset < length.value:
+            relationship, size = struct.unpack_from("<II", raw, offset)
+            if not size:
+                break
+            if relationship == _RELATION_PROCESSOR_CORE:
+                body = offset + 8
+                efficiency_class = raw[body + 1]
+                group_count = struct.unpack_from("<H", raw, body + _PROCESSOR_REL_GROUP_COUNT)[0]
+                for group in range(group_count):
+                    mask, group_id = struct.unpack_from(
+                        "<QH", raw, body + _PROCESSOR_REL_GROUP_MASK + group * _GROUP_AFFINITY_SIZE,
+                    )
+                    if group_id != 0:
+                        continue  # single-group affinity only; >64 CPUs is out of scope
+                    by_class.setdefault(efficiency_class, []).extend(
+                        i for i in range(64) if mask >> i & 1
+                    )
+            offset += size
+
+        if len(by_class) < 2:
+            return None
+        return sorted(by_class[max(by_class)])
+    except Exception:
+        return None
+
+
+def _apply_cpu_scheduling(pin_cores=True, priority="above", torch_threads=None):
+    """Keep the capture loop on fast cores and off torch's thread pool.
+
+    Reports what it managed to do; every step degrades to a warning rather than
+    failing the run, since none of it is required for correctness.
+    """
+    if torch_threads:
+        torch.set_num_threads(int(torch_threads))
+        print(f"[CPU] torch threads: {torch.get_num_threads()}")
+
+    if priority and priority != "normal" and sys.platform == "win32":
+        flag = _PRIORITY_CLASSES.get(priority)
+        if flag is None:
+            print(f"[CPU] Unknown priority '{priority}'; leaving it at normal.")
+        else:
+            try:
+                from ctypes import wintypes
+
+                kernel32 = ctypes.windll.kernel32
+                # HANDLE is pointer-sized. Without these declarations ctypes
+                # truncates the -1 pseudo-handle to 32 bits and the call fails.
+                kernel32.GetCurrentProcess.restype = wintypes.HANDLE
+                kernel32.SetPriorityClass.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+                kernel32.SetPriorityClass.restype = wintypes.BOOL
+
+                if kernel32.SetPriorityClass(kernel32.GetCurrentProcess(), flag):
+                    print(f"[CPU] Process priority: {priority}")
+                else:
+                    print("[CPU] Could not raise process priority.")
+            except Exception as exc:
+                print(f"[CPU] Priority change failed ({exc}).")
+
+    if not pin_cores:
+        return
+    cores = _detect_performance_cores()
+    if not cores:
+        print("[CPU] No hybrid P/E core split detected; skipping affinity pinning.")
+        return
+    try:
+        import psutil
+    except ImportError:
+        print("[CPU] psutil is not installed, so P-core pinning is skipped.")
+        print("[CPU] Install with: pip install psutil")
+        return
+    try:
+        psutil.Process().cpu_affinity(cores)
+        print(f"[CPU] Pinned to performance cores: {cores}")
+    except Exception as exc:
+        print(f"[CPU] Could not pin to performance cores ({exc}).")
 
 
 class LatencyStats:
@@ -257,6 +429,98 @@ class SequentialFrameReader:
 
     def stop(self):
         pass
+
+
+class TimedLandmarkBuffer:
+    """Rolling landmark history that yields a fixed *time* window, not frame count.
+
+    The training samples are 30 frames recorded at 30 fps, i.e. one second of
+    motion. Holding 30 raw frames live means the window stretches whenever the
+    capture rate drops — at 10 fps the model sees three seconds and a punch
+    becomes a 3-frame blip it was never trained on.
+
+    So we store (timestamp, landmarks) pairs and linearly resample the most
+    recent `window_ms` into exactly `sequence_length` evenly spaced frames. At a
+    true 30 fps the source and target grids line up and this is a no-op.
+
+    Set `resample=False` to fall back to the old frame-count behaviour.
+    """
+
+    MIN_SAMPLES = 4  # below this the interpolation has nothing meaningful to fit
+
+    def __init__(self, sequence_length, window_ms, maxlen, resample=True):
+        self.sequence_length = int(sequence_length)
+        self.window_ms = float(window_ms)
+        self.resample = bool(resample)
+        # N frames sampled over window_ms cover N-1 intervals, so the span from
+        # the first to the last frame is one step short of the full window.
+        # Getting this wrong shifts the grid off the source samples and stops
+        # the 30 fps case from being an exact no-op.
+        step = self.window_ms / max(self.sequence_length, 1)
+        self.span_target_ms = step * max(self.sequence_length - 1, 1)
+        self._frames = deque(maxlen=int(maxlen))
+        self._times = deque(maxlen=int(maxlen))
+
+    def __len__(self):
+        return len(self._frames)
+
+    def append(self, landmark_frame, timestamp_ms):
+        self._frames.append(landmark_frame)
+        self._times.append(float(timestamp_ms))
+        if not self.resample:
+            return
+        # Keep one sample older than the window start so the first target
+        # timestamp always has a left neighbour to interpolate from.
+        start = self._times[-1] - self.span_target_ms
+        while len(self._times) > 2 and self._times[1] <= start:
+            self._times.popleft()
+            self._frames.popleft()
+
+    def clear(self):
+        self._frames.clear()
+        self._times.clear()
+
+    @property
+    def span_ms(self):
+        if len(self._times) < 2:
+            return 0.0
+        return self._times[-1] - self._times[0]
+
+    @property
+    def fill(self):
+        """Frame-equivalent progress, so the game's warm-up bar still works."""
+        if not self.resample:
+            return min(len(self._frames), self.sequence_length)
+        if self.span_target_ms <= 0:
+            return 0
+        covered = min(1.0, self.span_ms / self.span_target_ms)
+        return int(round(covered * self.sequence_length))
+
+    @property
+    def ready(self):
+        if not self.resample:
+            return len(self._frames) >= self.sequence_length
+        return len(self._frames) >= self.MIN_SAMPLES and self.span_ms >= self.span_target_ms
+
+    def sample(self):
+        """Return (sequence_length, 33, 4) for the last `window_ms`, or None."""
+        if not self.ready:
+            return None
+
+        seq = np.asarray(self._frames, dtype=np.float32)  # (N, 33, 4)
+        if not self.resample:
+            return seq[-self.sequence_length:]
+
+        src_t = np.asarray(self._times, dtype=np.float64)
+        end = src_t[-1]
+        target = np.linspace(end - self.span_target_ms, end, self.sequence_length)
+
+        left = np.clip(np.searchsorted(src_t, target, side="right") - 1, 0, len(src_t) - 2)
+        t0 = src_t[left]
+        t1 = src_t[left + 1]
+        weight = np.clip((target - t0) / np.maximum(t1 - t0, 1e-6), 0.0, 1.0)
+        weight = weight.astype(np.float32)[:, None, None]
+        return seq[left] * (1.0 - weight) + seq[left + 1] * weight
 
 
 class EarlyActionDetector:
@@ -434,14 +698,8 @@ def _elbow_angle_degrees(frame, shoulder_idx, elbow_idx, wrist_idx):
     return math.degrees(math.acos(cos_angle))
 
 
-def _draw_skeleton(frame, landmarks):
+def _draw_skeleton_points(frame, pts):
     h, w = frame.shape[:2]
-    pts = []
-    for lm in landmarks:
-        x, y = int(lm.x * w), int(lm.y * h)
-        v = lm.visibility if hasattr(lm, "visibility") else 1.0
-        pts.append((x, y, v))
-
     if SHOW_CONNECTIONS:
         for a, b in POSE_CONNECTIONS:
             if a >= len(pts) or b >= len(pts):
@@ -454,6 +712,28 @@ def _draw_skeleton(frame, landmarks):
         if v < 0.25 or x < 0 or y < 0 or x >= w or y >= h:
             continue
         cv2.circle(frame, (x, y), POINT_RADIUS, POINT_COLOR, -1, cv2.LINE_AA)
+
+
+def _draw_skeleton(frame, landmarks):
+    h, w = frame.shape[:2]
+    pts = []
+    for lm in landmarks:
+        x, y = int(lm.x * w), int(lm.y * h)
+        v = lm.visibility if hasattr(lm, "visibility") else 1.0
+        pts.append((x, y, v))
+    _draw_skeleton_points(frame, pts)
+
+
+def _draw_landmark_frame(frame, landmark_frame):
+    h, w = frame.shape[:2]
+    pts = []
+    for lm in landmark_frame:
+        if len(lm) < 2:
+            continue
+        x, y = int(float(lm[0]) * w), int(float(lm[1]) * h)
+        v = float(lm[3]) if len(lm) > 3 else 1.0
+        pts.append((x, y, v))
+    _draw_skeleton_points(frame, pts)
 
 
 # ── Checkpoint loading ────────────────────────────────────────────────────────
@@ -490,13 +770,12 @@ def _load_classifier(model_path, device):
 
 # ── Buffer → model input ─────────────────────────────────────────────────────
 
-def _buffer_to_tensor(buffer, model_type, preprocess_args, device):
-    """Turn the rolling landmark buffer into an input tensor the model expects.
+def _buffer_to_tensor(seq, model_type, preprocess_args, device):
+    """Turn one landmark sequence into an input tensor the model expects.
 
-    buffer : deque of (33, 4) numpy arrays, length == SEQUENCE_LENGTH
+    seq : (SEQUENCE_LENGTH, 33, 4) array — same layout as collect_data.py saves.
     """
-    # Stack into a single (T, 33, 4) sample — same layout as collect_data.py saves.
-    seq = np.stack(list(buffer), axis=0)  # (30, 33, 4)
+    seq = np.ascontiguousarray(seq, dtype=np.float32)
 
     if model_type == "stgcn":
         # Run the SAME preprocessing the training set went through. Using the
@@ -791,6 +1070,12 @@ def _parse_args(argv=None):
     parser.add_argument("--port", type=int, default=POSE_API_DEFAULT_PORT, help="Pose API port for the browser game.")
     parser.add_argument("--no-api", action="store_true", help="Disable the browser game API bridge.")
     parser.add_argument("--no-window", action="store_true", help="Run detection without the OpenCV preview window.")
+    parser.add_argument(
+        "--display",
+        choices=("auto", "opencv", "notebook", "none"),
+        default="auto",
+        help="Preview renderer. Use notebook when running with %run inside Jupyter.",
+    )
     parser.add_argument("--self-test", action="store_true", help="Run bridge/action mapping checks without opening the camera.")
     parser.add_argument(
         "--latency-mode",
@@ -803,8 +1088,26 @@ def _parse_args(argv=None):
     parser.add_argument(
         "--pose-model",
         choices=tuple(POSE_MODEL_VARIANTS.keys()),
-        default="full",
-        help="MediaPipe Pose Landmarker variant to use.",
+        default="lite",
+        help="MediaPipe Pose Landmarker variant. lite is ~2x faster than full "
+             "on CPU, which is what matters here since the Windows MediaPipe "
+             "build has no GPU delegate.",
+    )
+    parser.add_argument(
+        "--no-resample",
+        action="store_true",
+        help="Disable fixed-time-window resampling and use a raw 30-frame buffer.",
+    )
+    parser.add_argument(
+        "--no-pin",
+        action="store_true",
+        help="Do not pin the process to the CPU's performance cores.",
+    )
+    parser.add_argument(
+        "--priority",
+        choices=("normal", "above", "high"),
+        default=PROCESS_PRIORITY,
+        help="Process priority class. Raise it so the browser cannot starve capture.",
     )
     parser.add_argument("--replay", help="Replay a .avi/.mp4 video or .npy landmark sequence instead of opening the webcam.")
     parser.add_argument("--max-frames", type=int, default=0, help="Stop after N frames, mainly for replay/benchmark runs.")
@@ -934,6 +1237,62 @@ def _run_self_test():
         result = low_vis.step(make_pose(wrist_x, visibility=0.2), i * 33)
     assert result is None, result
 
+    # ── Fixed-time-window resampling ────────────────────────────────────────
+    # A capture rate drop must not change what the classifier sees.
+    def synthetic_motion(t_ms):
+        pose = np.zeros((33, 4), dtype=np.float32)
+        pose[:, 0] = 0.5
+        pose[:, 1] = np.linspace(0.0, 1.0, 33)
+        pose[LANDMARK_RIGHT_WRIST, 0] = 0.5 + 0.4 * math.sin(math.pi * (t_ms % 1000.0) / 1000.0)
+        pose[:, 3] = 1.0
+        return pose
+
+    def fill_buffer(fps, resample=True, duration_ms=3000):
+        buf = TimedLandmarkBuffer(
+            SEQUENCE_LENGTH, SEQUENCE_WINDOW_MS, RAW_BUFFER_MAXLEN, resample=resample,
+        )
+        step = 1000.0 / fps
+        t = 0.0
+        while t <= duration_ms:
+            buf.append(synthetic_motion(t), t)
+            t += step
+        return buf
+
+    buffer_30 = fill_buffer(30)
+    assert buffer_30.ready and buffer_30.fill == SEQUENCE_LENGTH
+    window_30 = buffer_30.sample()
+    assert window_30.shape == (SEQUENCE_LENGTH, 33, 4), window_30.shape
+
+    # At the recording rate the target grid lands on the source samples, so
+    # resampling must be an exact no-op — otherwise it would perturb the case
+    # the model was actually trained on.
+    raw_30 = fill_buffer(30, resample=False).sample()
+    assert np.allclose(window_30, raw_30, atol=1e-5), "resampling is not identity at 30 fps"
+
+    # Degraded rates must still reconstruct the same one second of motion.
+    for fps in (20, 15, 10):
+        window = fill_buffer(fps).sample()
+        assert window.shape == (SEQUENCE_LENGTH, 33, 4)
+        error = float(np.abs(window[:, LANDMARK_RIGHT_WRIST, 0]
+                             - window_30[:, LANDMARK_RIGHT_WRIST, 0]).max())
+        assert error < 0.05, f"{fps} fps window drifted from the 30 fps window: {error}"
+
+    # Without resampling the same 30 frames stretch over three seconds — this is
+    # the failure the resampling exists to prevent.
+    stretched = fill_buffer(10, resample=False)
+    assert stretched.span_ms > 2.5 * SEQUENCE_WINDOW_MS, stretched.span_ms
+
+    warmup = TimedLandmarkBuffer(SEQUENCE_LENGTH, SEQUENCE_WINDOW_MS, RAW_BUFFER_MAXLEN)
+    assert not warmup.ready and warmup.fill == 0
+    for t_ms in (0, 250, 500, 750):
+        warmup.append(synthetic_motion(t_ms), t_ms)
+    assert not warmup.ready, "buffer went ready before covering the full window"
+    warmup.append(synthetic_motion(1000), 1000)
+    assert warmup.ready and warmup.fill == SEQUENCE_LENGTH
+
+    # Only the frames needed for the window are retained, whatever the rate.
+    assert len(fill_buffer(30, duration_ms=10000)) <= SEQUENCE_LENGTH + 2
+
     print("[SELF-TEST] run_model bridge checks passed.")
 
 
@@ -991,6 +1350,27 @@ def main(argv=None):
     if args.self_test:
         _run_self_test()
         return
+
+    _apply_cpu_scheduling(
+        pin_cores     = PIN_TO_PERFORMANCE_CORES and not args.no_pin,
+        priority      = args.priority,
+        torch_threads = TORCH_NUM_THREADS,
+    )
+
+    preview_mode = "none" if args.no_window else args.display
+    if preview_mode == "auto":
+        preview_mode = "notebook" if _is_notebook_session() else "opencv"
+
+    notebook_display = None
+    if preview_mode == "notebook":
+        try:
+            notebook_display = NotebookFrameDisplay()
+            print("[DISPLAY] Using inline notebook preview.")
+        except Exception as exc:
+            print(f"[WARN] Notebook preview unavailable ({exc}); falling back to OpenCV.")
+            preview_mode = "opencv"
+    elif preview_mode == "none":
+        print("[DISPLAY] Preview disabled.")
 
     print("=" * 60)
     print("  ZERO CONTROLLER - LIVE ACTION DETECTION")
@@ -1070,8 +1450,17 @@ def main(argv=None):
             frame_source = SequentialFrameReader(cap)
         print(f"[CAMERA] Backend: {backend}  low_latency={LOW_LATENCY_CAMERA}")
 
-    # Rolling buffer of the last SEQUENCE_LENGTH frames, raw (33, 4) each.
-    frame_buffer = deque(maxlen=SEQUENCE_LENGTH)
+    # Rolling landmark history, resampled to a fixed 1-second window so the
+    # classifier sees the same time span whatever the live capture rate is.
+    resample = RESAMPLE_TO_FIXED_WINDOW and not args.no_resample
+    frame_buffer = TimedLandmarkBuffer(
+        sequence_length = SEQUENCE_LENGTH,
+        window_ms       = SEQUENCE_WINDOW_MS,
+        maxlen          = RAW_BUFFER_MAXLEN,
+        resample        = resample,
+    )
+    print(f"[WINDOW] {SEQUENCE_LENGTH} frames  "
+          f"{'resampled to ' + str(SEQUENCE_WINDOW_MS) + ' ms' if resample else 'raw frame count'}")
     latency_stats = LatencyStats()
     early_enabled = EARLY_ACTION_ENABLED and args.latency_mode in {"fast", "balanced", "diagnostic"}
     early_detector = EarlyActionDetector(
@@ -1127,7 +1516,7 @@ def main(argv=None):
                 landmark_frame = replay_landmarks[frame_count]
                 capture_ns = time.perf_counter_ns()
                 frame_ts_ms = int(frame_count * (1000.0 / 30.0))
-                if not args.no_window:
+                if preview_mode != "none":
                     frame = np.zeros((480, 640, 3), dtype=np.uint8)
             else:
                 ok, frame, capture_ns, frame_ts_ms = frame_source.read()
@@ -1156,8 +1545,11 @@ def main(argv=None):
                 if landmarks:
                     landmark_frame = _landmarks_to_frame(landmarks)
 
-            if landmarks and frame is not None:
-                _draw_skeleton(frame, landmarks)
+            if frame is not None:
+                if landmarks:
+                    _draw_skeleton(frame, landmarks)
+                elif landmark_frame is not None:
+                    _draw_landmark_frame(frame, landmark_frame)
 
             publish_prediction = prediction
             publish_confidence = confidence
@@ -1167,7 +1559,7 @@ def main(argv=None):
 
             if landmark_frame is not None:
                 # Store the raw (33, 4) frame — preprocessing happens at inference.
-                frame_buffer.append(landmark_frame)
+                frame_buffer.append(landmark_frame, frame_ts_ms)
 
                 gate_start_ns = time.perf_counter_ns()
                 early_result = early_detector.step(landmark_frame, frame_ts_ms)
@@ -1178,10 +1570,11 @@ def main(argv=None):
                     early_label, early_confidence, _ = early_result
                     early_triggered = frame_ts_ms >= global_one_shot_cooldown_until_ms
 
-                if len(frame_buffer) == SEQUENCE_LENGTH:
+                window = frame_buffer.sample()
+                if window is not None:
                     preprocess_start_ns = time.perf_counter_ns()
                     tensor = _buffer_to_tensor(
-                        frame_buffer, model_type, preprocess_args, device,
+                        window, model_type, preprocess_args, device,
                     )
                     latency_stats.add("preprocess", _elapsed_ms(preprocess_start_ns))
 
@@ -1261,7 +1654,7 @@ def main(argv=None):
                     confidence=0.0,
                     stable_label=None,
                     triggered=False,
-                    buffer_fill=len(frame_buffer),
+                    buffer_fill=frame_buffer.fill,
                     fps=fps,
                     model_type=model_type,
                     capture_age_ms=capture_age_ms,
@@ -1270,13 +1663,13 @@ def main(argv=None):
                     status="no_pose",
                     message="No pose detected. Step into the camera view.",
                 )
-            elif len(frame_buffer) < SEQUENCE_LENGTH and not triggered:
+            elif not frame_buffer.ready and not triggered:
                 api_state.update_prediction(
                     prediction=prediction,
                     confidence=confidence,
                     stable_label=None,
                     triggered=False,
-                    buffer_fill=len(frame_buffer),
+                    buffer_fill=frame_buffer.fill,
                     fps=fps,
                     model_type=model_type,
                     capture_age_ms=capture_age_ms,
@@ -1291,7 +1684,7 @@ def main(argv=None):
                     confidence=publish_confidence,
                     stable_label=publish_stable_label,
                     triggered=triggered,
-                    buffer_fill=len(frame_buffer),
+                    buffer_fill=frame_buffer.fill,
                     fps=fps,
                     model_type=model_type,
                     trigger_source=trigger_source,
@@ -1317,7 +1710,7 @@ def main(argv=None):
                     stable_label   = publish_stable_label,
                     triggered      = triggered,
                     last_triggered = last_triggered,
-                    buffer_fill    = len(frame_buffer),
+                    buffer_fill    = frame_buffer.fill,
                     fps            = fps,
                     model_type     = model_type,
                     trigger_source = trigger_source,
@@ -1328,7 +1721,17 @@ def main(argv=None):
             if args.max_frames and frame_count >= args.max_frames:
                 break
 
-            if args.no_window:
+            if preview_mode == "none":
+                continue
+
+            if preview_mode == "notebook":
+                if frame is not None and notebook_display is not None:
+                    if not notebook_display.show(frame):
+                        api_state.mark_status(
+                            "detecting",
+                            "Notebook preview could not encode a frame; the browser bridge is still running.",
+                        )
+                        break
                 continue
 
             try:
@@ -1350,8 +1753,10 @@ def main(argv=None):
             frame_source.stop()
         if cap is not None:
             cap.release()
-        if not args.no_window:
+        if preview_mode == "opencv":
             cv2.destroyAllWindows()
+        if notebook_display is not None:
+            notebook_display.close()
         if landmarker is not None:
             landmarker.close()
         api_state.mark_status("stopped", "ZeroController detection stopped.")
