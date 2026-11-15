@@ -52,24 +52,32 @@ Classifiers
 - `run_model.py` uses the low-latency classifier by default (`fast_action.py`,
   `models/action_classifier_fast.pth`). It reads the current pose plus the last
   133 ms of motion. Retrain with `python train_fast.py`.
-- Frame labels: a 1-second clip is not all action. Many clips hold the finished
-  pose, some start from standing, and every jump starts and ends on the ground.
+- Training data: `data/raw/` keeps the original 1-second recordings, but a
+  recording is not all action. Many hold the finished pose, some start from
+  standing, and every jump starts and ends on the ground.
   `python tools/label_segments.py` marks each frame as action, early, idle or
-  ignore, and drops clips with no usable action. It writes
-  `data/labels/frame_labels.json` (read by `train_fast.py`) and
-  `data/labels/clip_review.csv` (one row per clip). Put hand corrections in
-  `data/labels/overrides.csv` and rerun it after recording new clips.
+  ignore, and drops recordings with no usable action (one row per recording in
+  `data/labels/clip_review.csv`; hand corrections go in
+  `data/labels/overrides.csv`). `python tools/build_clips.py` then cuts the
+  recordings down to `data/clips/`: only the frames that show each action, with
+  standing frames as idle clips. Both `train_fast.py` and `train_robust.py` train
+  on `data/clips/`. Rerun both tools after recording new clips.
 - Score a model the way the game uses it, on a recording session it never saw:
   `python train_fast.py --holdout-session 3 --save-path models/fast_s3.pth`, then
   `python tools/eval_fast_stream.py --model models/fast_s3.pth --session 3`.
   It reports moves that fired, delay from the start of each move, wrong
   triggers, and false triggers per minute while standing.
-- `python train_fast.py --labels clip --transitions idle` reproduces the old
-  labelling (every frame is the clip's action), for comparison.
+- `python train_fast.py --data raw --transitions idle` reproduces the previous
+  training (whole recordings, every frame the action), for comparison.
+- `python run_model.py --classifier window` runs the older 1-second model.
+- A new action only fires if the body moved in the last 270 ms. If moves are
+  missed or fire by themselves, tune `FAST_MIN_MOTION` and
+  `FAST_CONFIDENCE_THRESHOLD` in `config.py`.
+- Stand with your full body in frame, since kicks and movement need the legs.
 
 Train on Google Colab (no laptop compute)
-- `notebooks/train_on_colab.ipynb` clones the repository, rebuilds the frame
-  labels, trains, and downloads `action_classifier_fast.pth` (with a copy in
+- `notebooks/train_on_colab.ipynb` clones the repository, rebuilds the updated
+  clips, trains, and downloads `action_classifier_fast.pth` (with a copy in
   Google Drive). Optional settings score the method on held-out sessions and
   train the 1-second models on a GPU. Open it in Colab (File > Open notebook >
   GitHub), check the settings cell, then choose Runtime > Run all.
@@ -80,11 +88,6 @@ Train on Google Colab (no laptop compute)
 - `data/multicam/` comes from the repository if committed, otherwise from Google
   Drive, otherwise the notebook rebuilds it from the videos in git history (about
   2-3 hours on a free Colab CPU, once).
-- `python run_model.py --classifier window` runs the older 1-second model.
-- A new action only fires if the body moved in the last 270 ms. If moves are
-  missed or fire by themselves, tune `FAST_MIN_MOTION` and
-  `FAST_CONFIDENCE_THRESHOLD` in `config.py`.
-- Stand with your full body in frame, since kicks and movement need the legs.
 
 Files (brief, bullet points)
 - `config.py`: global constants — camera options, MediaPipe model path/URL,

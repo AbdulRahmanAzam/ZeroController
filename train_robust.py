@@ -2,8 +2,12 @@
 
 Differences from train_model.py:
   * Camera-independent features (pose_features.preprocess_pose_v2).
-  * Trains on data/raw plus data/multicam, the same clips re-run through MediaPipe
-    under live camera conditions (build with tools/build_multicam_landmarks.py).
+  * Trains on the updated clips in data/clips (tools/build_clips.py): only the frames
+    that show each action, no unusable recordings. A clip shorter than the 1-second
+    window is led in by standing frames from an idle clip, as in the live stream.
+    --data raw trains on the original recordings instead.
+  * Also trains on data/multicam, the same recordings re-run through MediaPipe under
+    live camera conditions (tools/build_multicam_landmarks.py), cut to the same frames.
   * Random camera and body changes applied to raw landmarks, before feature building,
     plus left-right mirroring for punches and kicks.
   * Optional mixed windows, part idle and part action, like the live stream produces.
@@ -16,6 +20,7 @@ Run:  python train_robust.py                         (final model, all sessions)
 """
 
 import argparse
+import csv
 import glob
 import json
 import os
@@ -28,14 +33,19 @@ from torch.utils.data import DataLoader, Dataset
 
 from config import (
     ACTIONS, DATA_DIR, DROPOUT, GRU_HIDDEN_SIZE, GRU_NUM_LAYERS, RUNTIME_MODEL_PATH, RUNTIME_MODEL_TYPE,
-    POSECNN_CHANNELS, POSECNN_KERNEL_SIZE, POSECNN_NUM_LAYERS, STGCN_CHANNELS, STGCN_TEMPORAL_K,
-    TCN_KERNEL_SIZE, TCN_NUM_CHANNELS, TCN_NUM_LAYERS,
+    POSECNN_CHANNELS, POSECNN_KERNEL_SIZE, POSECNN_NUM_LAYERS, SEQUENCE_LENGTH, STGCN_CHANNELS,
+    STGCN_TEMPORAL_K, TCN_KERNEL_SIZE, TCN_NUM_CHANNELS, TCN_NUM_LAYERS,
 )
 from pose_features import TRAINING_ASPECT, V2_CHANNELS, preprocess_pose_v2, to_model_input
 from train_model import ActionGRU, ActionPoseConv1D, ActionSTGCN, ActionTCN, AugmentedDataset
 
-MULTICAM_DIR = os.path.join(os.path.dirname(DATA_DIR.rstrip("/\\")), "multicam")
-SESSIONS_PATH = os.path.join(os.path.dirname(DATA_DIR.rstrip("/\\")), "labels", "sessions.json")
+DATA_ROOT = os.path.dirname(DATA_DIR.rstrip("/\\"))
+MULTICAM_DIR = os.path.join(DATA_ROOT, "multicam")
+SESSIONS_PATH = os.path.join(DATA_ROOT, "labels", "sessions.json")
+FRAME_LABELS_PATH = os.path.join(DATA_ROOT, "labels", "frame_labels.json")
+CLIPS_DIR = os.path.join(DATA_ROOT, "clips")
+CLIPS_INDEX_PATH = os.path.join(CLIPS_DIR, "index.csv")
+SKIP = -1  # per-frame target for frames that are only lead-in, or that a re-tracking lost
 TRAIN_CONDITIONS = ["full_169", "lite_169", "lite_43"]
 ALL_CONDITIONS = TRAIN_CONDITIONS + ["lite_43_zoom", "lite_43_far", "lite_43_tilt", "full_43"]
 SESSION_GAP_SECONDS = 1800
@@ -44,6 +54,7 @@ IDLE = ACTIONS.index("idle")
 MIN_FRAMES_FOR_ACTION_LABEL = 12
 MIRROR_LABELS = {"left_punch": "right_punch", "right_punch": "left_punch",
                  "left_kick": "right_kick", "right_kick": "left_kick"}
+BODY_JOINTS = [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28]
 
 
 def recording_sessions():
@@ -91,6 +102,115 @@ def load_raw(sessions):
     ]
 
 
+def load_all_clips(use_conditions=True):
+    """(clip, aspect, label, session, key, source) for every original recording and its
+    multicam re-trackings, whole and unlabelled by frame."""
+    sessions = recording_sessions()
+    rows = []
+    for (action, name), session in sorted(sessions.items()):
+        clip = np.load(os.path.join(DATA_DIR, action, name + ".npy")).astype(np.float32)
+        rows.append((clip, TRAINING_ASPECT, ACTIONS.index(action), session, f"{action}/{name}", "raw"))
+    for condition in (ALL_CONDITIONS if use_conditions else []):
+        data = np.load(os.path.join(MULTICAM_DIR, condition + ".npz"))
+        aspect = float(data["aspect"])
+        for full_name, clip in zip(data["names"], data["x"]):
+            action, name = str(full_name).split("__")
+            key = (action, name[:-4])
+            if key in sessions:
+                rows.append((clip.astype(np.float32), aspect, ACTIONS.index(action), sessions[key],
+                             f"{action}/{name[:-4]}", condition))
+    return [row for row in rows if is_tracked(row[0])]
+
+
+def _body(clip, aspect):
+    pos = clip[..., :2].astype(np.float64).copy()
+    pos[..., 0] *= aspect
+    hip = (pos[:, 23] + pos[:, 24]) / 2
+    shoulder = (pos[:, 11] + pos[:, 12]) / 2
+    torso = np.linalg.norm(shoulder - hip, axis=1)
+    rel = (pos[:, BODY_JOINTS] - hip[:, None]) / np.median(torso)
+    visible = clip[:, [11, 12, 23, 24], 3].min(axis=1) >= 0.5
+    usable = visible & (torso > 0.6 * np.median(torso)) & (torso < 1.6 * np.median(torso))
+    return rel, usable
+
+
+def align_marks(raw_clip, clip, aspect, marks):
+    """Move per-frame marks of a raw recording onto another tracking of the same video.
+
+    The two trackings can sit a few frames apart, because each was resampled to 30
+    frames from a different number of camera frames. Frames the other tracking lost
+    become "x".
+    """
+    raw, _ = _body(raw_clip, TRAINING_ASPECT)
+    other, usable = _body(clip, aspect)
+    length = len(raw)
+    best_lag, best_error = 0, np.inf
+    for lag in range(-3, 4):
+        lo, hi = max(0, -lag), min(length, length - lag)
+        error = float(np.abs(other[lo:hi] - raw[lo + lag:hi + lag]).mean())
+        if error < best_error - 1e-6:
+            best_lag, best_error = lag, error
+    marks = np.asarray(list(marks))
+    shifted = np.full(length, "x")
+    for t in range(length):
+        if 0 <= t + best_lag < length:
+            shifted[t] = marks[t + best_lag]
+    shifted[~usable] = "x"
+    return "".join(shifted)
+
+
+def load_updated_clips(conditions=ALL_CONDITIONS):
+    """The updated clips of data/clips, plus the same frames from each multicam re-tracking.
+
+    Returns (clip, aspect, label, targets, session, key, source) rows. targets holds the
+    clip's label per frame, or SKIP for lead-in frames and frames a re-tracking lost.
+    """
+    with open(CLIPS_INDEX_PATH, newline="") as f:
+        index = list(csv.DictReader(f))
+    rows, recordings = [], {}
+    for row in index:
+        label = ACTIONS.index(row["action"])
+        clip = np.load(os.path.join(CLIPS_DIR, row["file"])).astype(np.float32)
+        targets = np.full(len(clip), label, dtype=np.int64)
+        targets[:int(row["context"])] = SKIP
+        rows.append((clip, TRAINING_ASPECT, label, targets, int(row["session"]), row["file"], "raw"))
+        if row["source"] not in recordings:
+            recordings[row["source"]] = np.load(os.path.join(DATA_DIR, row["source"] + ".npy")).astype(np.float32)
+
+    for condition in conditions:
+        data = np.load(os.path.join(MULTICAM_DIR, condition + ".npz"))
+        aspect = float(data["aspect"])
+        tracked = {}
+        for full_name, clip in zip(data["names"], data["x"]):
+            action, name = str(full_name).split("__")
+            tracked[f"{action}/{name[:-4]}"] = clip.astype(np.float32)
+        for row in index:
+            other = tracked.get(row["source"])
+            if other is None or not is_tracked(other):
+                continue
+            start, end, context = int(row["start"]), int(row["end"]), int(row["context"])
+            span = ["x"] * len(other)
+            span[start - context:start] = ["c"] * context
+            span[start:end + 1] = ["k"] * (end - start + 1)
+            shifted = align_marks(recordings[row["source"]], other, aspect, "".join(span))
+            kept = [i for i, mark in enumerate(shifted) if mark != "x"]
+            if not kept or "k" not in shifted:
+                continue
+            first, last = kept[0], kept[-1]
+            label = ACTIONS.index(row["action"])
+            targets = np.array([label if mark == "k" else SKIP for mark in shifted[first:last + 1]], dtype=np.int64)
+            rows.append((other[first:last + 1], aspect, label, targets, int(row["session"]), row["file"], condition))
+    return rows
+
+
+def dropped_recordings():
+    """Keys of recordings tools/label_segments.py marked as unusable."""
+    if not os.path.exists(FRAME_LABELS_PATH):
+        return set()
+    with open(FRAME_LABELS_PATH) as f:
+        return {key for key, info in json.load(f)["clips"].items() if info["status"] == "drop"}
+
+
 def load_condition(condition, sessions):
     data = np.load(os.path.join(MULTICAM_DIR, condition + ".npz"))
     clips = []
@@ -111,7 +231,7 @@ def augment_landmarks(clip, aspect, rng, return_index=False):
     clip = clip.copy()
     length = len(clip)
     index = np.arange(length, dtype=np.float64)
-    cut = int(rng.integers(0, 7))
+    cut = int(rng.integers(0, min(7, max(1, length // 4))))  # short clips get a smaller cut
     if cut:
         start = int(rng.integers(0, cut + 1))
         part = clip[start:length - (cut - start)]
@@ -149,6 +269,25 @@ def cross_fade(first, second, frames):
     w = np.linspace(0, 1, frames + 2)[1:-1, None, None]
     blend = (first[-1][None] * (1 - w) + second[0][None] * w).astype(np.float32)
     return np.concatenate([first, blend, second], axis=0)
+
+
+def fill_window(clip, aspect, idle_pool, rng, length=SEQUENCE_LENGTH):
+    """A window of `length` frames from a clip of any length.
+
+    A longer clip gives a random stretch of it. A shorter one is led in by the end of
+    a standing clip, so the window looks like the live stream: standing, then the move.
+    """
+    if len(clip) >= length:
+        start = int(rng.integers(0, len(clip) - length + 1))
+        return clip[start:start + length]
+    lead = length - len(clip)
+    candidates = idle_pool.get(aspect) or [clip[:1]]
+    idle = candidates[rng.integers(len(candidates))]
+    fade = min(3, lead - 1)
+    before = idle[len(idle) - (lead - fade):]
+    if len(before) < lead - fade:  # idle clip too short: hold its first frame
+        before = np.concatenate([np.repeat(idle[:1], lead - fade - len(before), axis=0), before])
+    return cross_fade(before, clip, fade)
 
 
 def mixed_window(clip, aspect, label, pool, rng):
@@ -205,15 +344,22 @@ class RobustDataset(Dataset):
         self.mixed_prob = mixed_prob
         self.mirror = mirror
         self.rng = np.random.default_rng(seed)
+        self.idle = {}
+        for clip, aspect, label in items:
+            if label == IDLE and len(clip) >= 8:
+                self.idle.setdefault(aspect, []).append(clip)
+        # mixed_window draws whole windows from this pool.
         self.pool = {}
         for clip, aspect, label in items:
-            self.pool.setdefault(aspect, {}).setdefault(label, []).append(clip)
+            window = fill_window(clip, aspect, self.idle, self.rng)
+            self.pool.setdefault(aspect, {}).setdefault(label, []).append(window)
 
     def __len__(self):
         return len(self.items)
 
     def __getitem__(self, index):
         clip, aspect, label = self.items[index]
+        clip = fill_window(clip, aspect, self.idle, self.rng)
         if self.mixed_prob and self.rng.random() < self.mixed_prob:
             clip = mixed_window(clip, aspect, label, self.pool, self.rng)
         clip = augment_landmarks(clip, aspect, self.rng)
@@ -255,6 +401,8 @@ def main():
     parser.add_argument("--threads", type=int, default=0)
     parser.add_argument("--save-path", default=RUNTIME_MODEL_PATH)
     parser.add_argument("--device", default="auto", help="auto picks cuda when a GPU is present, else cpu")
+    parser.add_argument("--data", choices=("clips", "raw"), default="clips",
+                        help="clips: the updated clips in data/clips. raw: the original recordings.")
     args = parser.parse_args()
     device = ("cuda" if torch.cuda.is_available() else "cpu") if args.device == "auto" else args.device
 
@@ -266,20 +414,29 @@ def main():
 
     holdout = {args.holdout_session} if args.holdout_session is not None else set()
     sessions = recording_sessions()
-    raw = [row for row in load_raw(sessions) if is_tracked(row[2])]
-    labelled = [(clip, TRAINING_ASPECT, ACTIONS.index(action))
-                for action, session, clip in raw if session not in holdout]
-
-    tests = {"raw": ([row for row in raw if row[1] in holdout], TRAINING_ASPECT)}
     names = ALL_CONDITIONS if args.conditions == "all" else TRAIN_CONDITIONS
+    # Held-out scoring always uses whole one-second recordings, like the live window sees.
+    skip = dropped_recordings() if args.data == "clips" else set()
+    keep = {key for key in sessions if f"{key[0]}/{key[1]}" not in skip}
+    raw = [row for row in load_raw({key: sessions[key] for key in keep}) if is_tracked(row[2])]
+    tests = {"raw": ([row for row in raw if row[1] in holdout], TRAINING_ASPECT)}
+    condition_clips = {}
     for condition in ALL_CONDITIONS:
-        clips, aspect = load_condition(condition, sessions)
-        clips = [row for row in clips if is_tracked(row[2])]
-        tests[condition] = ([row for row in clips if row[1] in holdout], aspect)
-        if condition in names:
+        clips, aspect = load_condition(condition, {key: sessions[key] for key in keep})
+        condition_clips[condition] = ([row for row in clips if is_tracked(row[2])], aspect)
+        tests[condition] = ([row for row in condition_clips[condition][0] if row[1] in holdout], aspect)
+
+    if args.data == "clips":
+        labelled = [(clip, aspect, label) for clip, aspect, label, _, session, _, _ in load_updated_clips(names)
+                    if session not in holdout]
+    else:
+        labelled = [(clip, TRAINING_ASPECT, ACTIONS.index(action))
+                    for action, session, clip in raw if session not in holdout]
+        for condition in names:
+            clips, aspect = condition_clips[condition]
             labelled += [(clip, aspect, ACTIONS.index(action))
                          for action, session, clip in clips if session not in holdout]
-    print(f"Training windows: {len(labelled)}  conditions: {names}  holdout: {sorted(holdout)}")
+    print(f"Training clips: {len(labelled)}  data: {args.data}  conditions: {names}  holdout: {sorted(holdout)}")
 
     model = build_model(args.model_type).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), 1e-3, weight_decay=1e-4)
@@ -327,6 +484,7 @@ def main():
         "posecnn_kernel_size": POSECNN_KERNEL_SIZE,
         "posecnn_num_layers": POSECNN_NUM_LAYERS,
         "preprocess_version": 2,
+        "data": args.data,
     }, args.save_path)
     print(f"Saved {args.save_path}")
 

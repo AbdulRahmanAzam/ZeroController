@@ -33,8 +33,7 @@ from config import (  # noqa: E402
     FAST_MOTION_MEMORY_MS, FAST_STABLE_FRAMES, PREDICT_TRIGGER_COOLDOWN_MS,
 )
 from fast_action import FastActionClassifier, apply_motion_gate  # noqa: E402
-from train_fast import FRAME_LABELS_PATH, align_marks, load_all_clips  # noqa: E402
-from train_robust import cross_fade  # noqa: E402
+from train_robust import FRAME_LABELS_PATH, align_marks, cross_fade, load_all_clips  # noqa: E402
 
 FRAME_MS = 1000.0 / 30.0
 REAL_START_KINDS = ("move", "jump")

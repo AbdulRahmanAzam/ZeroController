@@ -1,9 +1,9 @@
 """Train the low-latency classifier in fast_action.py.
 
-Labels come from data/labels/frame_labels.json, made by tools/label_segments.py. It
-marks which frames of each clip really show the clip's action. Frames where the
-player still stands before a move are taught as idle, frames that are too uncertain
-are left out, and clips that show no action are skipped.
+It trains on the updated clips in data/clips (tools/build_clips.py): each clip holds
+only the frames that show its action, standing frames are idle clips, and unusable
+recordings are left out. Every frame of a clip is taught as the clip's action, except
+up to 4 lead-in frames that only give the first frames their 133 ms of motion.
 
 Most clips hold the finished pose for the whole second, so they never show how a move
 starts. Joins from a standing clip into a held pose stand in for that start: once the
@@ -11,7 +11,7 @@ body is COMMIT_FRACTION of the way into the pose, those frames carry the move's 
 
 Run:  python train_fast.py                                       (final model, all sessions)
       python train_fast.py --holdout-session 3 --save-path X.pth (model for held-out scoring)
-      python train_fast.py --labels clip --transitions idle ...  (the previous labelling)
+      python train_fast.py --data raw --transitions idle ...     (the previous training)
 """
 
 import argparse
@@ -22,21 +22,18 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from config import ACTIONS, DATA_DIR
+from config import ACTIONS
 from fast_action import FEATURE_SETS, HIP_MOTION, LOOKBACK_FRAMES_AT_30FPS, build_network, sequence_features
-from pose_features import TRAINING_ASPECT
 from train_robust import (
-    ALL_CONDITIONS, MIRROR_LABELS, MULTICAM_DIR, augment_landmarks, cross_fade, is_tracked,
-    mirror_landmarks, recording_sessions,
+    ALL_CONDITIONS, MIRROR_LABELS, SKIP, augment_landmarks, cross_fade, load_all_clips,
+    load_updated_clips, mirror_landmarks,
 )
 
 DEFAULT_SAVE_PATH = "models/action_classifier_fast.pth"
-FRAME_LABELS_PATH = os.path.join("data", "labels", "frame_labels.json")
 IDLE = ACTIONS.index("idle")
 JUMP = ACTIONS.index("jump")
-SKIP = -1  # target for frames left out of training
-# --labels clip only: jump clips include standing frames, so only frames with real hip
-# motion count as jump.
+# --data raw only: jump recordings include standing frames, so only frames with real
+# hip motion count as jump.
 JUMP_MIN_HIP_MOTION = 0.12
 AUGMENTED_COPIES = 2
 TRANSITIONS_PER_CLIP = 2
@@ -46,21 +43,9 @@ ENDS_PER_HELD_CLIP = 2
 # A join from standing into a pose counts as the move once the body is this far along.
 COMMIT_FRACTION = 0.3
 LAG = LOOKBACK_FRAMES_AT_30FPS
-BODY_JOINTS = [0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28]
 
 
 # ── Labels ───────────────────────────────────────────────────────────────────
-
-def frame_targets(marks, label, early):
-    """Per-frame class index (or SKIP) from a clip's marks string."""
-    marks = np.asarray(list(marks))
-    targets = np.full(len(marks), SKIP, dtype=np.int64)
-    targets[marks == "a"] = label
-    targets[marks == "i"] = IDLE
-    if early == "action":
-        targets[marks == "e"] = label
-    return targets
-
 
 def clip_targets(clip, aspect, label):
     """The previous labelling: every frame is the clip's action, except still jump frames."""
@@ -73,83 +58,20 @@ def clip_targets(clip, aspect, label):
     return targets
 
 
-def _body(clip, aspect):
-    pos = clip[..., :2].astype(np.float64).copy()
-    pos[..., 0] *= aspect
-    hip = (pos[:, 23] + pos[:, 24]) / 2
-    shoulder = (pos[:, 11] + pos[:, 12]) / 2
-    torso = np.linalg.norm(shoulder - hip, axis=1)
-    rel = (pos[:, BODY_JOINTS] - hip[:, None]) / np.median(torso)
-    visible = clip[:, [11, 12, 23, 24], 3].min(axis=1) >= 0.5
-    usable = visible & (torso > 0.6 * np.median(torso)) & (torso < 1.6 * np.median(torso))
-    return rel, usable
-
-
-def align_marks(raw_clip, clip, aspect, marks):
-    """Move a raw clip's marks onto another tracking of the same video.
-
-    The two trackings can sit a few frames apart, because each was resampled to 30
-    frames from a different number of camera frames.
-    """
-    raw, _ = _body(raw_clip, TRAINING_ASPECT)
-    other, usable = _body(clip, aspect)
-    length = len(raw)
-    best_lag, best_error = 0, np.inf
-    for lag in range(-3, 4):
-        lo, hi = max(0, -lag), min(length, length - lag)
-        error = float(np.abs(other[lo:hi] - raw[lo + lag:hi + lag]).mean())
-        if error < best_error - 1e-6:
-            best_lag, best_error = lag, error
-    marks = np.asarray(list(marks))
-    shifted = np.full(length, "x")
-    for t in range(length):
-        if 0 <= t + best_lag < length:
-            shifted[t] = marks[t + best_lag]
-    shifted[~usable] = "x"
-    return "".join(shifted)
-
-
-def load_all_clips(use_conditions=True):
-    """(clip, aspect, label, session, key, source) for raw clips and multicam versions."""
-    sessions = recording_sessions()
-    rows = []
-    for (action, name), session in sorted(sessions.items()):
-        clip = np.load(os.path.join(DATA_DIR, action, name + ".npy")).astype(np.float32)
-        rows.append((clip, TRAINING_ASPECT, ACTIONS.index(action), session, f"{action}/{name}", "raw"))
-    for condition in (ALL_CONDITIONS if use_conditions else []):
-        data = np.load(os.path.join(MULTICAM_DIR, condition + ".npz"))
-        aspect = float(data["aspect"])
-        for full_name, clip in zip(data["names"], data["x"]):
-            action, name = str(full_name).split("__")
-            key = (action, name[:-4])
-            if key in sessions:
-                rows.append((clip.astype(np.float32), aspect, ACTIONS.index(action), sessions[key],
-                             f"{action}/{name[:-4]}", condition))
-    return [row for row in rows if is_tracked(row[0])]
-
-
-def labelled_clips(rows, labels, early):
-    """Attach per-frame targets: (clip, aspect, label, targets, session, key, source)."""
-    if labels == "clip":
+def training_rows(data, use_conditions=True):
+    """(clip, aspect, label, targets, session, key, source) rows to train on."""
+    if data == "raw":  # the previous training: whole recordings, every frame is the action
         return [(clip, aspect, label, clip_targets(clip, aspect, label), session, key, source)
-                for clip, aspect, label, session, key, source in rows]
-    with open(FRAME_LABELS_PATH) as f:
-        marks = json.load(f)["clips"]
-    raw = {key: clip for clip, _, _, _, key, source in rows if source == "raw"}
-    out = []
-    for clip, aspect, label, session, key, source in rows:
-        info = marks.get(key)
-        if info is None or info["status"] == "drop":
-            continue
-        clip_marks = info["marks"] if source == "raw" else align_marks(raw[key], clip, aspect, info["marks"])
-        out.append((clip, aspect, label, frame_targets(clip_marks, label, early), session, key, source))
-    return out
+                for clip, aspect, label, session, key, source in load_all_clips(use_conditions)]
+    return load_updated_clips(ALL_CONDITIONS if use_conditions else [])
 
 
 # ── Training samples ─────────────────────────────────────────────────────────
 
 def clip_samples(clip, aspect, targets, feature_set="pose"):
     """Features and targets for every frame with a full lookback and a target."""
+    if len(clip) <= LAG:  # too short for one frame with a full 133 ms behind it
+        return np.zeros((0, 1), np.float32), np.zeros(0, np.int64)
     features = sequence_features(clip, aspect, feature_set)
     rows = targets[LAG:]
     keep = rows != SKIP
@@ -287,10 +209,8 @@ def main():
     parser.add_argument("--threads", type=int, default=0)
     parser.add_argument("--save-path", default=DEFAULT_SAVE_PATH)
     parser.add_argument("--device", default="auto", help="auto picks cuda when a GPU is present, else cpu")
-    parser.add_argument("--labels", choices=("frames", "clip"), default="frames",
-                        help="frames: marks from tools/label_segments.py. clip: every frame is the clip's action.")
-    parser.add_argument("--early", choices=("ignore", "action"), default="action",
-                        help="How to train frames marked early (a move under 30%% of the way in).")
+    parser.add_argument("--data", choices=("clips", "raw"), default="clips",
+                        help="clips: the updated clips in data/clips. raw: whole recordings, every frame the action.")
     parser.add_argument("--transitions", choices=("onset", "idle"), default="onset",
                         help="onset: a join into a pose starts the move. idle: joins are taught as idle.")
     parser.add_argument("--sources", choices=("all", "raw"), default="all",
@@ -306,8 +226,7 @@ def main():
     np.random.seed(args.seed)
 
     holdout = set(args.holdout_session or [])
-    rows = [row for row in load_all_clips(args.sources == "all") if row[3] not in holdout]
-    clips = labelled_clips(rows, args.labels, args.early)
+    clips = [row for row in training_rows(args.data, args.sources == "all") if row[4] not in holdout]
     x, y = build_training_set(clips, args.seed, args.transitions, args.features)
     assert x.shape[1] == FEATURE_SETS[args.features]
     print(f"Training frames: {len(x)}  from clips: {len(clips)}  holdout: {sorted(holdout)}", flush=True)
@@ -322,8 +241,7 @@ def main():
         "feature_mean": mean.tolist(),
         "feature_std": std.tolist(),
         "holdout_sessions": sorted(holdout),
-        "labels": args.labels,
-        "early": args.early,
+        "data": args.data,
         "transitions": args.transitions,
         "sources": args.sources,
         "feature_set": args.features,
