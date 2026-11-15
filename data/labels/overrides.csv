@@ -1,0 +1,11 @@
+action,sample,status,kind,marks,note
+forward,sample_0007,drop,,,stands still; no step visible
+backward,sample_0003,ok,move,,stands still until frame 23 then steps back
+backward,sample_0008,ok,move,,stands still until frame 17 then steps back
+backward,sample_0009,drop,,,raises an arm high like a punch
+backward,sample_0045,drop,,,arm held out like a punch while on one leg
+left_kick,sample_0025,ok,,xxxxxxxxxxxxxaaaaaaaaaaaaaaaaa,turns into position and the tracker slips until frame 12
+left_kick,sample_0034,drop,,,no kick visible
+left_kick,sample_0056,drop,,,no kick visible
+left_kick,sample_0057,drop,,,fist held at the chest; no kick visible
+jump,sample_0033,drop,,,the jump starts after the recording ends

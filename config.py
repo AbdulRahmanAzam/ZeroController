@@ -1,7 +1,7 @@
 """Configuration for ZeroController pose visualization and data collection."""
 
 # Camera settings
-CAMERA_INDEX = 1  # index 0 = Camo/EShare virtual cam (outputs black); 1 = real HP Wide Vision webcam
+CAMERA_INDEX = 1  # Camo (Camo Studio must be running and streaming). Order on this PC: 0 = EShare (black), 1 = Camo, 2 = HP Wide Vision. Order can shift when virtual cams are added or removed.
 CAMERA_WIDTH = 640   # 640×480 is faster for MediaPipe than 1280×720 → higher real FPS
 CAMERA_HEIGHT = 480
 CAMERA_TARGET_FPS = 30
@@ -79,6 +79,20 @@ ACTIONS = [
 # track MODEL_TYPE below or run_model.py will happily load a stale checkpoint of
 # a different architecture.
 MODEL_SAVE_PATH = "models/action_classifier_stgcn.pth"
+# The model run_model.py loads, written by train_robust.py. Kept separate so
+# train_model.py cannot resume from or overwrite it.
+RUNTIME_MODEL_PATH = "models/action_classifier_robust.pth"
+RUNTIME_MODEL_TYPE = "tcn"
+# "fast" reads one pose plus 133 ms of motion. "window" is the 1-second model above.
+RUNTIME_CLASSIFIER = "fast"
+FAST_MODEL_PATH = "models/action_classifier_fast.pth"
+FAST_CONFIDENCE_THRESHOLD = 0.8
+FAST_STABLE_FRAMES = 2
+FAST_INSTANT_CONFIDENCE = 0.85  # at or above this, one frame is enough
+# A new action needs this much body movement (torso lengths per 133 ms) within the
+# memory below. Standing still is what the model most often misreads as an action.
+FAST_MIN_MOTION = 0.2
+FAST_MOTION_MEMORY_MS = 270
 EPOCHS = 120
 BATCH_SIZE = 8
 LEARNING_RATE = 1e-3
@@ -166,9 +180,10 @@ PROCESS_PRIORITY = "above"
 # two fight. The classifier is ~2 ms, so it does not need the cores.
 TORCH_NUM_THREADS = 2
 
-# Fast partial-motion path for one-shot game inputs. The ST-GCN still runs as
-# the high-confidence fallback once the full 30-frame window is available.
-EARLY_ACTION_ENABLED = True
+# Fast partial-motion path for punches. Off because it fires on wrist speed alone:
+# in held-out stream tests it turned forward into right_punch and raised wrong
+# triggers from 2.6 to 10.7 per minute, with no meaningful latency benefit.
+EARLY_ACTION_ENABLED = False
 EARLY_PUNCH_WINDOW_FRAMES = 5
 EARLY_PUNCH_MIN_SPEED = 0.18
 EARLY_PUNCH_MIN_EXTENSION_DELTA = 0.12

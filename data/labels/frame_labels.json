@@ -1,0 +1,4428 @@
+{
+ "version": 1,
+ "marks": {
+  "a": "action",
+  "e": "early",
+  "i": "idle",
+  "x": "ignore"
+ },
+ "clips": {
+  "backward/sample_0000": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiixeeeeeaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0001": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiixeeeaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0002": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0003": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiiiixeeeeeaaaaaaaaaaa",
+   "note": "checked by eye: stands still until frame 23 then steps back"
+  },
+  "backward/sample_0004": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0005": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0006": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0007": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0008": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiixeeeeeaaaaaaaaaaaaaaaaaaaa",
+   "note": "checked by eye: stands still until frame 17 then steps back"
+  },
+  "backward/sample_0009": {
+   "session": 0,
+   "status": "drop",
+   "kind": "move",
+   "marks": "iiiiiixeeeeeeaaaaaaaaaaaaaaaaa",
+   "note": "checked by eye: raises an arm high like a punch"
+  },
+  "backward/sample_0010": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiixeeeeeeeaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0011": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0012": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0013": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0014": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0015": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0016": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0017": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0018": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0019": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0020": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0021": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0022": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0023": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0024": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0025": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0026": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0027": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiixeeaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0028": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0029": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0030": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0031": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0032": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0033": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0034": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0035": {
+   "session": 1,
+   "status": "ok",
+   "kind": "move",
+   "marks": "ixeeaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0036": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0037": {
+   "session": 1,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiixeeaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0038": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0039": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0040": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0041": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0042": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0043": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0044": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0045": {
+   "session": 3,
+   "status": "drop",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "checked by eye: arm held out like a punch while on one leg"
+  },
+  "backward/sample_0046": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0047": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0048": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0049": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0050": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0051": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0052": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0053": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "eeeaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0054": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0055": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0056": {
+   "session": 3,
+   "status": "review",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "held pose is close to standing"
+  },
+  "backward/sample_0057": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0058": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0059": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0060": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0061": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0062": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0063": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiixeeeaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0064": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0065": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0066": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iixeeaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0067": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0068": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0069": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "backward/sample_0070": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0000": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiixeeaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0001": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0002": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0003": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0004": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0005": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0006": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0007": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0008": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0009": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0010": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0011": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0012": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0013": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0014": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0015": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0016": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0017": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0018": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0019": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0020": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0021": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0022": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0023": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0024": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0025": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0026": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0027": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0028": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0029": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0030": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0031": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0032": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0033": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0034": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0035": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0036": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0037": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0038": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0039": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0040": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0041": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0042": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0043": {
+   "session": 2,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0044": {
+   "session": 2,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0045": {
+   "session": 2,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0046": {
+   "session": 2,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0047": {
+   "session": 2,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0048": {
+   "session": 2,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0049": {
+   "session": 2,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0050": {
+   "session": 2,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0051": {
+   "session": 2,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0052": {
+   "session": 2,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0053": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0054": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0055": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0056": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0057": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0058": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0059": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0060": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0061": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0062": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0063": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0064": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0065": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0066": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0067": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0068": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0069": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "block/sample_0070": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0000": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0001": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiixeeeaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0002": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiixeeeeeeeeeeeeaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0003": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0004": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiixeeeeeeeeeaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0005": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiixeeaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0006": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiixeeeeaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0007": {
+   "session": 0,
+   "status": "drop",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "held pose is close to standing; checked by eye: stands still; no step visible"
+  },
+  "forward/sample_0008": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiixeeeaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0009": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiiiiixeeeeeeeeeeaaaaa",
+   "note": ""
+  },
+  "forward/sample_0010": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiixeeeeeaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0011": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiixeeeeeaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0012": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiixeeeeeeaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0013": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0014": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0015": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0016": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0017": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0018": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0019": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0020": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0021": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0022": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0023": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0024": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0025": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiixeeeaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0026": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0027": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0028": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0029": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0030": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0031": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0032": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0033": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0034": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0035": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0036": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0037": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0038": {
+   "session": 1,
+   "status": "ok",
+   "kind": "move",
+   "marks": "ixeeaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0039": {
+   "session": 1,
+   "status": "review",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "held pose is close to standing"
+  },
+  "forward/sample_0040": {
+   "session": 1,
+   "status": "review",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "held pose is close to standing"
+  },
+  "forward/sample_0041": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0042": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0043": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0044": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0045": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0046": {
+   "session": 3,
+   "status": "review",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "held pose is close to standing"
+  },
+  "forward/sample_0047": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0048": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0049": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0050": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0051": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0052": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0053": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0054": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0055": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0056": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0057": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiixeaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0058": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iixeaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0059": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0060": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0061": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0062": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0063": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0064": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0065": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0066": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0067": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0068": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0069": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "forward/sample_0070": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "idle/sample_0000": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0001": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0002": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0003": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0004": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0005": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0006": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0007": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0008": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0009": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0010": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0011": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0012": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0013": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0014": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0015": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0016": {
+   "session": 0,
+   "status": "drop",
+   "kind": "idle",
+   "marks": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "note": "close-up: no full body in view"
+  },
+  "idle/sample_0017": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0018": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0019": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0020": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0021": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0022": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0023": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0024": {
+   "session": 0,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0025": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0026": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0027": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0028": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0029": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0030": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0031": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0032": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0033": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0034": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0035": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0036": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0037": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0038": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0039": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0040": {
+   "session": 1,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0041": {
+   "session": 1,
+   "status": "drop",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": "close-up: no full body in view"
+  },
+  "idle/sample_0042": {
+   "session": 2,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0043": {
+   "session": 2,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0044": {
+   "session": 2,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0045": {
+   "session": 2,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0046": {
+   "session": 2,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0047": {
+   "session": 2,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0048": {
+   "session": 2,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0049": {
+   "session": 2,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0050": {
+   "session": 2,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0051": {
+   "session": 3,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0052": {
+   "session": 3,
+   "status": "drop",
+   "kind": "idle",
+   "marks": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "note": "torso not tracked"
+  },
+  "idle/sample_0053": {
+   "session": 3,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0054": {
+   "session": 3,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0055": {
+   "session": 3,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0056": {
+   "session": 3,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "idle/sample_0057": {
+   "session": 3,
+   "status": "ok",
+   "kind": "idle",
+   "marks": "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+   "note": ""
+  },
+  "jump/sample_0000": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiixeaaaaaaaaaaaaaaxxxxx",
+   "note": ""
+  },
+  "jump/sample_0001": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiixeaaaaaaaaaaaaaaaaaxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0002": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiixeeeeaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0003": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiixeaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0004": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiixeaaaaaaaaaaaaaaxx",
+   "note": ""
+  },
+  "jump/sample_0005": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiiiixeaaaaaaaaaaax",
+   "note": ""
+  },
+  "jump/sample_0006": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiixeaaaaaaaaaaaaaaaxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0007": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiixeaaaaaaaaaaaaaxxx",
+   "note": ""
+  },
+  "jump/sample_0008": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiixeeeeeaaaaaaaaaaaaaaaaaxx",
+   "note": ""
+  },
+  "jump/sample_0009": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiixeaaaaaaaaaaaaaaxxx",
+   "note": ""
+  },
+  "jump/sample_0010": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiixeaaaaaaaaaaaaaaaaxxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0011": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiixaaaaaaaaaaaaaaxx",
+   "note": ""
+  },
+  "jump/sample_0012": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiixeaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0013": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiiiiiiixeaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0014": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiixeaaaaaaaaaaaaaaxx",
+   "note": ""
+  },
+  "jump/sample_0015": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiiiiiiiixeaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0016": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiixeaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0017": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiixeeaaaaaaaaaaaaaaaxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0018": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiiixeeaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0019": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiixeaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0020": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiixeaaaaaaaaaaaaaaaaaaxxxx",
+   "note": ""
+  },
+  "jump/sample_0021": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiixeaaaaaaaaaaaaaaxx",
+   "note": ""
+  },
+  "jump/sample_0022": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiiixeaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0023": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "ixeeaaaaaaaaaaaaaaaaxxxxxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0024": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiixeeaaaaaaaaaaaaaaaaaxxxxx",
+   "note": ""
+  },
+  "jump/sample_0025": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiixeeaaaaaaaaaaaaaaaaaaxxxx",
+   "note": ""
+  },
+  "jump/sample_0026": {
+   "session": 0,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiixeeaaaaaaaaaaaaaaaaxxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0027": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiixeaaaaaaaaaaaaaaaxx",
+   "note": ""
+  },
+  "jump/sample_0028": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiixeeeaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0029": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiixeaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0030": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "ixeaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0031": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiixeeaaaaaaaaaaaaaaaaaxxxxx",
+   "note": ""
+  },
+  "jump/sample_0032": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiixeaaaaaaxxxaaaaaaaxxxx",
+   "note": ""
+  },
+  "jump/sample_0033": {
+   "session": 1,
+   "status": "drop",
+   "kind": "jump",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "no jump found; checked by eye: the jump starts after the recording ends"
+  },
+  "jump/sample_0034": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiixeeaaaaaaaaaaaaaaaaaxxxxx",
+   "note": ""
+  },
+  "jump/sample_0035": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiixeaaaaaaaaaaaaaaaaxxxx",
+   "note": ""
+  },
+  "jump/sample_0036": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiiiiiiiixeaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0037": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiixeaaaaaaaaaaaaaaaxx",
+   "note": ""
+  },
+  "jump/sample_0038": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiiiixeaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0039": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiiiixeaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0040": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiixeeaaaaaaaaaaaaaaaaxxxxx",
+   "note": ""
+  },
+  "jump/sample_0041": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiiiiiiiixeaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0042": {
+   "session": 1,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiixeaaaaaaaaaaaaaaaaxxxxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0043": {
+   "session": 2,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiixeaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0044": {
+   "session": 2,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiixeeaaaaaaaaaaaaaaaaaxxxx",
+   "note": ""
+  },
+  "jump/sample_0045": {
+   "session": 2,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiixeeeaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0046": {
+   "session": 2,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiiiiiiixeeaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0047": {
+   "session": 2,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iixeeeaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0048": {
+   "session": 2,
+   "status": "drop",
+   "kind": "jump",
+   "marks": "iiixeeeaaaaxxxxxxxxaxxxxxxxxxx",
+   "note": "most frames unusable"
+  },
+  "jump/sample_0049": {
+   "session": 2,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiixeeeaaaaaaaaaaaxxxxaa",
+   "note": ""
+  },
+  "jump/sample_0050": {
+   "session": 2,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiixeeaaaaaaaaaaaaaaaaaxxxxx",
+   "note": ""
+  },
+  "jump/sample_0051": {
+   "session": 2,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiixeeeeeeaaaaaaaaaxxxxxxxxaa",
+   "note": ""
+  },
+  "jump/sample_0052": {
+   "session": 2,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiixeaaaaxxxxxxaaaaaax",
+   "note": ""
+  },
+  "jump/sample_0053": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiixeaaaaaaaaaaaaaaaaxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0054": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiixeeaaaaxaaaaaaaxxxxxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0055": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiixeaaaaaaaaaaaaaaaaaxxxxx",
+   "note": ""
+  },
+  "jump/sample_0056": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiixeeaaaaaaaaaaaaaaaaaxxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0057": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiixeeaaaaaaaaaaaaaaaaxx",
+   "note": ""
+  },
+  "jump/sample_0058": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiixeeeaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0059": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiixeeaaaaaaaaaaaaaaaaaxxx",
+   "note": ""
+  },
+  "jump/sample_0060": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiixeaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0061": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiixeeaaaaaaaaaaaaaaaxx",
+   "note": ""
+  },
+  "jump/sample_0062": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiixeeaaaaaaaaaaaaaaaaxxxxx",
+   "note": ""
+  },
+  "jump/sample_0063": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiixeaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0064": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "ixeaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0065": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiixeaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0066": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiixeaaaaaaaaaaaaaaaaaaxx",
+   "note": ""
+  },
+  "jump/sample_0067": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiixeaaaaaaaaaaaaaxxxxxxxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0068": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iixeeaaaaaaaaaaaaaaaaaaaaaaaxx",
+   "note": ""
+  },
+  "jump/sample_0069": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiixeaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0070": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "ixeeaaaaaaaaaaaaaaaaaxxxxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0071": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiixeeeaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0072": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiixeeaaaaaaaaaaaaaaaaaxxxxxx",
+   "note": ""
+  },
+  "jump/sample_0073": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiixeaaaaaaaaaaaaaaaaaaxxxxx",
+   "note": ""
+  },
+  "jump/sample_0074": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iiiiiiiiiiiiiixeaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "jump/sample_0075": {
+   "session": 3,
+   "status": "ok",
+   "kind": "jump",
+   "marks": "iixeaaaaaaaaaaaaaaaaaaaaxxxxxx",
+   "note": ""
+  },
+  "left_kick/sample_0013": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0014": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0015": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0016": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0017": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0018": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0019": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0020": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0021": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iixeeeaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0022": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0023": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0024": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0025": {
+   "session": 1,
+   "status": "ok",
+   "kind": "hand",
+   "marks": "xxxxxxxxxxxxxaaaaaaaaaaaaaaaaa",
+   "note": "checked by eye: turns into position and the tracker slips until frame 12"
+  },
+  "left_kick/sample_0026": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0027": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0028": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0029": {
+   "session": 3,
+   "status": "review",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "held pose is close to standing"
+  },
+  "left_kick/sample_0030": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0031": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0032": {
+   "session": 3,
+   "status": "review",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "held pose is close to standing"
+  },
+  "left_kick/sample_0033": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0034": {
+   "session": 3,
+   "status": "drop",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "held pose is close to standing; checked by eye: no kick visible"
+  },
+  "left_kick/sample_0035": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0036": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0037": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0038": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0039": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0040": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiixeeeeeeeeeaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0041": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiixeeeeaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0042": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0043": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0044": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0045": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0046": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0047": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0048": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiixeeaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0049": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0050": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0051": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0052": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0053": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0054": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0055": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0056": {
+   "session": 3,
+   "status": "drop",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "held pose is close to standing; checked by eye: no kick visible"
+  },
+  "left_kick/sample_0057": {
+   "session": 3,
+   "status": "drop",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "held pose is close to standing; checked by eye: fist held at the chest; no kick visible"
+  },
+  "left_kick/sample_0058": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0059": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0060": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0061": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0062": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0063": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0064": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0065": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0066": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0067": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0068": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0069": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0070": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0071": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0072": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0073": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0074": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0075": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0076": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0077": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0078": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0079": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0080": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0081": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0082": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_kick/sample_0083": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0012": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0013": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0014": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0015": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0016": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0017": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0018": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0019": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0020": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0021": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0022": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0023": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0024": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0025": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0026": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0027": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0028": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0029": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0030": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0031": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0032": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0033": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0034": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0035": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0036": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0037": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0038": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0039": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0040": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iixeeeaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0041": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0042": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0043": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0044": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiixeeeaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0045": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0046": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0047": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0048": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0049": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0050": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0051": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0052": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0053": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0054": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0055": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0056": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0057": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0058": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0059": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0060": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiiiixeeaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0061": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0062": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0063": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0064": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0065": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0066": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0067": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0068": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0069": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0070": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0071": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0072": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0073": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0074": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0075": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0076": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0077": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0078": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0079": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0080": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0081": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "left_punch/sample_0082": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0000": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiixeeeeeeaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0001": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0002": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiixeeeaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0003": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiixeeaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0004": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiiiixeeaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0005": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiixeeaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0006": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiixeeeeeeaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0007": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiiixeeeeeeeaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0008": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiixeeeeeeaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0009": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiixeeeeeeaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0010": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiixeeeeeeeeeeeeaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0011": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiixeeeeaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0012": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiixeeeeeaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0013": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0014": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0015": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0016": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiixeeeeeaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0017": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iixeeeeaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0018": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0019": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiixeeeaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0020": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0021": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0022": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "ixeeaaaaaaaaaaaaaaxxxxxxxxxxxx",
+   "note": ""
+  },
+  "right_kick/sample_0023": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "ixeeeaaaaaaaaaaaaaaaaaxxxxxxxx",
+   "note": ""
+  },
+  "right_kick/sample_0024": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0025": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iixeaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0026": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0027": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0028": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0029": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0030": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0031": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0032": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0033": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0034": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0035": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0036": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0037": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0038": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0039": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0040": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0041": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0042": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "eeeeaaaaaaaaaaaaaaaaaaaaaaxxxx",
+   "note": ""
+  },
+  "right_kick/sample_0043": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0044": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "ixeeaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0045": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iixeeeeeaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0046": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0047": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0048": {
+   "session": 3,
+   "status": "review",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": "held pose is close to standing"
+  },
+  "right_kick/sample_0049": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0050": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0051": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iixeaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0052": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "ixeeaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0053": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiixeeeeeeeaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0054": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiiiiixeeaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0055": {
+   "session": 3,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiixeeeaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0056": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0057": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0058": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0059": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0060": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0061": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0062": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0063": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0064": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0065": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0066": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0067": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0068": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0069": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_kick/sample_0070": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0000": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiiiiiixeeaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0001": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiixeeaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0002": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiiiiiiiixeeeeaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0003": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiiiixeeaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0004": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiixeeeeaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0005": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiiiiixeeeeeeaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0006": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiixeeeaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0007": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiixeeeeaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0008": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiiiiixeeeeeaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0009": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiixeeeeeaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0010": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiixeeeeaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0011": {
+   "session": 0,
+   "status": "ok",
+   "kind": "move",
+   "marks": "iiiiiiixeeeeeaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0012": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0013": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0014": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0015": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0016": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0017": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0018": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0019": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0020": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0021": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0022": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0023": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0024": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0025": {
+   "session": 0,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0026": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0027": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0028": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0029": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0030": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0031": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0032": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0033": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0034": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0035": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0036": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0037": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0038": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0039": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0040": {
+   "session": 1,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0041": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0042": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0043": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0044": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0045": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0046": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0047": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0048": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0049": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0050": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0051": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0052": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0053": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0054": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0055": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0056": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0057": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0058": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0059": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0060": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0061": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0062": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0063": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0064": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0065": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0066": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0067": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0068": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0069": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  },
+  "right_punch/sample_0070": {
+   "session": 3,
+   "status": "ok",
+   "kind": "held",
+   "marks": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "note": ""
+  }
+ }
+}

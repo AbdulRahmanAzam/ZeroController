@@ -51,6 +51,8 @@ from mediapipe.tasks.python import vision
 _restore_stderr(_saved_fd)
 
 from camera_utils import open_camera_with_fallback
+from fast_action import FastActionClassifier, apply_motion_gate
+from pose_features import TRAINING_ASPECT, preprocess_pose_v2, to_model_input
 from config import (
     CAMERA_BACKEND,
     CAMERA_INDEX,
@@ -59,10 +61,16 @@ from config import (
     EARLY_PUNCH_MIN_EXTENSION_DELTA,
     EARLY_PUNCH_MIN_SPEED,
     EARLY_PUNCH_WINDOW_FRAMES,
+    FAST_CONFIDENCE_THRESHOLD,
+    FAST_INSTANT_CONFIDENCE,
+    FAST_MIN_MOTION,
+    FAST_MODEL_PATH,
+    FAST_MOTION_MEMORY_MS,
+    FAST_STABLE_FRAMES,
     LINE_COLOR,
     LOW_LATENCY_CAMERA,
     MIRROR_VIEW,
-    MODEL_SAVE_PATH,
+    RUNTIME_MODEL_PATH,
     POINT_COLOR,
     POINT_RADIUS,
     POSE_MIN_DETECTION_CONFIDENCE,
@@ -79,6 +87,7 @@ from config import (
     PROCESS_PRIORITY,
     RAW_BUFFER_MAXLEN,
     RESAMPLE_TO_FIXED_WINDOW,
+    RUNTIME_CLASSIFIER,
     SEQUENCE_LENGTH,
     SEQUENCE_WINDOW_MS,
     SHOW_CONNECTIONS,
@@ -110,10 +119,18 @@ GAME_ACTION_MAP = {
 
 CONTINUOUS_GAME_ACTIONS = {"idle", "move_forward", "move_backward", "block"}
 ONE_SHOT_GAME_ACTIONS = {"jump", "left_punch", "right_punch", "left_kick", "right_kick"}
-GAME_ACTION_HOLD_SECONDS = 0.20
+# How long a one-shot stays published. Attacks stay for the length of their sprite
+# animation (14 frames at 30 fps) so the strike is actually seen.
+ATTACK_HOLD_SECONDS = 0.47
+JUMP_HOLD_SECONDS = 0.20
+# A block or move may interrupt that hold once the strike has had time to land
+# (the camera hit window in gameStore.ts ends at 200 ms).
+ATTACK_MIN_HOLD_SECONDS = 0.20
+# A confidence dip this short keeps the held move or guard instead of flickering to idle.
+CONTINUOUS_HOLD_SECONDS = 0.25
 POSE_API_DEFAULT_HOST = "127.0.0.1"
 POSE_API_DEFAULT_PORT = 8000
-POSE_WS_PUSH_INTERVAL_SECONDS = 1.0 / 30.0
+POSE_WS_HEARTBEAT_SECONDS = 0.1
 
 LANDMARK_LEFT_SHOULDER = 11
 LANDMARK_RIGHT_SHOULDER = 12
@@ -281,6 +298,11 @@ def _apply_cpu_scheduling(pin_cores=True, priority="above", torch_threads=None):
     if torch_threads:
         torch.set_num_threads(int(torch_threads))
         print(f"[CPU] torch threads: {torch.get_num_threads()}")
+
+    if sys.platform == "win32":
+        # Default Windows timers tick every ~16 ms, which delays every waitKey and
+        # socket wakeup. This applies to this process only and ends when it exits.
+        ctypes.windll.winmm.timeBeginPeriod(1)
 
     if priority and priority != "normal" and sys.platform == "win32":
         flag = _PRIORITY_CLASSES.get(priority)
@@ -762,6 +784,7 @@ def _load_classifier(model_path, device):
         "scale_norm":     ckpt.get("preprocess_scale_norm",     True),
         "use_visibility": ckpt.get("preprocess_use_visibility", True),
         "use_velocity":   ckpt.get("stgcn_use_velocity",        True),
+        "version":        ckpt.get("preprocess_version",        1),
     }
 
     print(f"[MODEL] {model_type.upper()} loaded  |  actions: {ckpt['actions']}")
@@ -770,14 +793,18 @@ def _load_classifier(model_path, device):
 
 # ── Buffer → model input ─────────────────────────────────────────────────────
 
-def _buffer_to_tensor(seq, model_type, preprocess_args, device):
+def _buffer_to_tensor(seq, model_type, preprocess_args, device, aspect=TRAINING_ASPECT):
     """Turn one landmark sequence into an input tensor the model expects.
 
-    seq : (SEQUENCE_LENGTH, 33, 4) array — same layout as collect_data.py saves.
+    seq    : (SEQUENCE_LENGTH, 33, 4) array — same layout as collect_data.py saves.
+    aspect : width / height of the frame the landmarks came from.
     """
     seq = np.ascontiguousarray(seq, dtype=np.float32)
 
-    if model_type == "stgcn":
+    if preprocess_args.get("version", 1) >= 2:
+        arr = to_model_input(preprocess_pose_v2(seq, aspect), model_type)
+        tensor = torch.from_numpy(arr).unsqueeze(0)
+    elif model_type == "stgcn":
         # Run the SAME preprocessing the training set went through. Using the
         # flags stored in the checkpoint guarantees we never accidentally drift
         # from the trained distribution.
@@ -812,8 +839,12 @@ class ActionGate:
       2. One-shot trigger: a non-idle action fires exactly once, then a
          `cooldown` blocks further triggers. Returning to idle re-arms it.
     """
-    def __init__(self, threshold, stable_frames, cooldown_ms, idle_label="idle", fast_labels=None):
+    def __init__(self, threshold, stable_frames, cooldown_ms, idle_label="idle", fast_labels=None,
+                 instant_confidence=None):
         self.threshold     = threshold
+        # At or above this confidence, one frame is enough. A quick strike may
+        # only be at full extension for a few frames.
+        self.instant_confidence = instant_confidence
         self.stable_frames = stable_frames
         self.cooldown_ms   = cooldown_ms
         self.idle_label    = idle_label
@@ -822,6 +853,10 @@ class ActionGate:
         self._stable_count    = 0        # streak length of _last_pred above threshold
         self._cooldown_until_ms = 0      # monotonic ms before a new trigger is allowed
         self._last_triggered  = None     # last action that actually fired (non-idle)
+
+    @property
+    def last_triggered(self):
+        return self._last_triggered
 
     def step(self, pred_label, confidence, timestamp_ms=None):
         """Feed one prediction; returns (stable_label, triggered).
@@ -840,7 +875,8 @@ class ActionGate:
             self._stable_count = 1 if confidence >= self.threshold else 0
         self._last_pred = pred_label
 
-        required_frames = 1 if pred_label in self.fast_labels else self.stable_frames
+        is_instant = self.instant_confidence is not None and confidence >= self.instant_confidence
+        required_frames = 1 if is_instant or pred_label in self.fast_labels else self.stable_frames
         stable_label = pred_label if self._stable_count >= required_frames else None
 
         triggered = False
@@ -868,11 +904,15 @@ class PoseApiState:
         self._lock = threading.Lock()
         self._pulse_action = None
         self._pulse_until = 0.0
+        self._pulse_committed_until = 0.0
         self._pulse_event_id = 0
         self._pulse_confidence = 0.0
         self._pulse_source = None
         self._pulse_prediction = "idle"
         self._event_id = 0
+        self._held_action = "idle"
+        self._held_until = 0.0
+        self._subscribers = set()
         self._snapshot = {
             "ok": True,
             "status": "booting",
@@ -904,6 +944,25 @@ class PoseApiState:
             })
             if message is not None:
                 self._snapshot["message"] = message
+        self._notify_subscribers()
+
+    def subscribe(self, loop, event):
+        """Have event set on loop whenever a new snapshot is published."""
+        with self._lock:
+            self._subscribers.add((loop, event))
+
+    def unsubscribe(self, loop, event):
+        with self._lock:
+            self._subscribers.discard((loop, event))
+
+    def _notify_subscribers(self):
+        with self._lock:
+            subscribers = list(self._subscribers)
+        for loop, event in subscribers:
+            try:
+                loop.call_soon_threadsafe(event.set)
+            except RuntimeError:  # the socket's event loop has already closed
+                self.unsubscribe(loop, event)
 
     def update_prediction(
         self,
@@ -928,14 +987,36 @@ class PoseApiState:
         if triggered and stable_game_action in ONE_SHOT_GAME_ACTIONS:
             self._event_id += 1
             self._pulse_action = stable_game_action
-            self._pulse_until = now + GAME_ACTION_HOLD_SECONDS
+            self._pulse_until = now + (
+                JUMP_HOLD_SECONDS if stable_game_action == "jump" else ATTACK_HOLD_SECONDS
+            )
+            self._pulse_committed_until = now + (
+                JUMP_HOLD_SECONDS if stable_game_action == "jump" else ATTACK_MIN_HOLD_SECONDS
+            )
             self._pulse_event_id = self._event_id
             self._pulse_confidence = float(confidence)
             self._pulse_source = trigger_source
             self._pulse_prediction = str(prediction)
 
+        # A stable label always wins. Only an unsettled frame falls back to the held action.
+        if stable_label:
+            is_continuous = stable_game_action in CONTINUOUS_GAME_ACTIONS
+            self._held_action = stable_game_action if is_continuous else "idle"
+            self._held_until = now + CONTINUOUS_HOLD_SECONDS if is_continuous else 0.0
+        elif status != "detecting":
+            self._held_action = "idle"
+            self._held_until = 0.0
+        held_action = self._held_action if now < self._held_until else "idle"
+
         pulse_active = self._pulse_action is not None and now < self._pulse_until
-        if pulse_active:
+        interrupted = (
+            pulse_active
+            and now >= self._pulse_committed_until
+            and stable_game_action in CONTINUOUS_GAME_ACTIONS
+            and stable_game_action != "idle"
+            and stable_label is not None
+        )
+        if pulse_active and not interrupted:
             published_action = self._pulse_action
             published_confidence = max(float(confidence), self._pulse_confidence)
             published_source_action = self._pulse_prediction
@@ -949,7 +1030,7 @@ class PoseApiState:
             self._pulse_confidence = 0.0
             self._pulse_source = None
             self._pulse_prediction = "idle"
-            published_action = stable_game_action if stable_game_action in CONTINUOUS_GAME_ACTIONS else "idle"
+            published_action = held_action
             published_confidence = float(confidence)
             published_source_action = prediction
             published_stable_action = _to_game_action(stable_label) if stable_label else None
@@ -978,6 +1059,7 @@ class PoseApiState:
                 "pipelineLatencyMs": float(pipeline_latency_ms),
                 "latencyStats": latency_stats or {},
             })
+        self._notify_subscribers()
 
     def snapshot(self, player_id=1):
         with self._lock:
@@ -1041,12 +1123,23 @@ def _start_pose_api_server(api_state, host, port):
     @app.websocket("/ws/pose/{player_id}")
     async def pose_ws(websocket: WebSocket, player_id: int):
         await websocket.accept()
+        loop = asyncio.get_running_loop()
+        updated = asyncio.Event()
+        api_state.subscribe(loop, updated)
         try:
             while True:
                 await websocket.send_json(api_state.snapshot(player_id))
-                await asyncio.sleep(POSE_WS_PUSH_INTERVAL_SECONDS)
+                # Send each result as soon as it exists. The timeout keeps messages
+                # flowing if capture stalls, so the game can see the data went stale.
+                try:
+                    await asyncio.wait_for(updated.wait(), POSE_WS_HEARTBEAT_SECONDS)
+                except asyncio.TimeoutError:
+                    pass
+                updated.clear()
         except WebSocketDisconnect:
             pass
+        finally:
+            api_state.unsubscribe(loop, updated)
 
     config = uvicorn.Config(
         app,
@@ -1092,6 +1185,12 @@ def _parse_args(argv=None):
         help="MediaPipe Pose Landmarker variant. lite is ~2x faster than full "
              "on CPU, which is what matters here since the Windows MediaPipe "
              "build has no GPU delegate.",
+    )
+    parser.add_argument(
+        "--classifier",
+        choices=("fast", "window"),
+        default=RUNTIME_CLASSIFIER,
+        help="fast reacts within a few frames. window is the 1-second model.",
     )
     parser.add_argument(
         "--no-resample",
@@ -1172,7 +1271,7 @@ def _run_self_test():
     assert snap["triggered"] is True
     assert snap["eventId"] == 1
 
-    time.sleep(GAME_ACTION_HOLD_SECONDS + 0.03)
+    time.sleep(ATTACK_HOLD_SECONDS + 0.03)
     state.update_prediction(
         prediction="right_punch",
         confidence=0.96,
@@ -1182,6 +1281,47 @@ def _run_self_test():
         fps=30.0,
         model_type="stgcn",
     )
+    assert state.snapshot()["action"] == "idle"
+
+    # A block interrupts an attack only after the strike has had time to land.
+    pulse_args = dict(buffer_fill=SEQUENCE_LENGTH, fps=30.0, model_type="fast")
+    state.update_prediction(prediction="left_punch", confidence=0.9, stable_label="left_punch",
+                            triggered=True, **pulse_args)
+    state.update_prediction(prediction="block", confidence=0.9, stable_label="block",
+                            triggered=True, **pulse_args)
+    assert state.snapshot()["action"] == "left_punch"
+    time.sleep(ATTACK_MIN_HOLD_SECONDS + 0.03)
+    state.update_prediction(prediction="block", confidence=0.9, stable_label="block",
+                            triggered=False, **pulse_args)
+    assert state.snapshot()["action"] == "block"
+
+    # Very high confidence fires on the first frame; lower confidence still waits.
+    instant_gate = ActionGate(0.8, 2, 170, instant_confidence=0.85)
+    assert instant_gate.step("right_punch", 0.9, 0) == ("right_punch", True)
+    assert instant_gate.step("left_kick", 0.82, 200) == (None, False)
+    assert instant_gate.step("left_kick", 0.82, 233) == ("left_kick", True)
+
+    # Standing still cannot start an action, but a held action survives stillness.
+    assert apply_motion_gate("forward", 0.9, None, 0.05, 0.2) == ("idle", 0.0)
+    assert apply_motion_gate("forward", 0.9, "forward", 0.05, 0.2) == ("forward", 0.9)
+    assert apply_motion_gate("right_punch", 0.9, None, 0.5, 0.2) == ("right_punch", 0.9)
+    assert apply_motion_gate("idle", 0.9, "forward", 0.05, 0.2) == ("idle", 0.9)
+
+    # A short confidence dip keeps the guard; a longer one lets go of it.
+    hold_args = dict(buffer_fill=SEQUENCE_LENGTH, fps=30.0, model_type="tcn", triggered=False)
+    state.update_prediction(prediction="block", confidence=0.9, stable_label="block", **hold_args)
+    state.update_prediction(prediction="block", confidence=0.5, stable_label=None, **hold_args)
+    assert state.snapshot()["action"] == "block"
+    time.sleep(CONTINUOUS_HOLD_SECONDS + 0.03)
+    state.update_prediction(prediction="block", confidence=0.5, stable_label=None, **hold_args)
+    assert state.snapshot()["action"] == "idle"
+
+    # Losing the pose lets go at once, and a stable idle always wins.
+    state.update_prediction(prediction="forward", confidence=0.9, stable_label="forward", **hold_args)
+    state.update_prediction(prediction="forward", confidence=0.0, stable_label=None, status="no_pose", **hold_args)
+    assert state.snapshot()["action"] == "idle"
+    state.update_prediction(prediction="forward", confidence=0.9, stable_label="forward", **hold_args)
+    state.update_prediction(prediction="idle", confidence=0.9, stable_label="idle", **hold_args)
     assert state.snapshot()["action"] == "idle"
 
     gate = ActionGate(threshold=0.8, stable_frames=2, cooldown_ms=70)
@@ -1300,8 +1440,13 @@ def _run_self_test():
 
 def _draw_hud(frame, *, prediction, confidence, stable_label, triggered,
               last_triggered, buffer_fill, fps, model_type, trigger_source,
-              latency_snapshot):
+              latency_snapshot, legs_visible=True):
     h, w = frame.shape[:2]
+
+    # Kicks and movement need the legs, and accuracy drops sharply without them.
+    if not legs_visible:
+        cv2.putText(frame, "LEGS OUT OF FRAME - STEP BACK", (15, h - 40),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
 
     # Top-left: current (per-frame) prediction and confidence.
     pred_text = f"{prediction}  ({confidence:.0%})"
@@ -1395,19 +1540,26 @@ def main(argv=None):
     else:
         print("[API] Pose bridge disabled by --no-api")
 
-    if not os.path.exists(MODEL_SAVE_PATH):
-        print(f"[ERROR] No trained model found at {MODEL_SAVE_PATH}")
-        print("[ERROR] Run train_model.py first.")
-        api_state.mark_status("model_error", f"No trained model found at {MODEL_SAVE_PATH}")
+    use_fast = args.classifier == "fast"
+    model_path = FAST_MODEL_PATH if use_fast else RUNTIME_MODEL_PATH
+    if not os.path.exists(model_path):
+        trainer = "train_fast.py" if use_fast else "train_robust.py"
+        print(f"[ERROR] No trained model found at {model_path}")
+        print(f"[ERROR] Run {trainer} first.")
+        api_state.mark_status("model_error", f"No trained model found at {model_path}")
         sys.exit(1)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     api_state.mark_status("loading_model", "Loading trained action classifier...")
-    model, actions, model_type, preprocess_args = _load_classifier(
-        MODEL_SAVE_PATH, device,
-    )
-    print(f"[MODEL] Loaded {MODEL_SAVE_PATH}  |  Device: {device}")
-    print(f"[MODEL] Preprocessing flags from ckpt: {preprocess_args}")
+    fast_classifier = None
+    if use_fast:
+        fast_classifier = FastActionClassifier(model_path, device)
+        model_type = "fast"
+        print(f"[MODEL] FAST loaded  |  actions: {fast_classifier.actions}")
+    else:
+        model, actions, model_type, preprocess_args = _load_classifier(model_path, device)
+        print(f"[MODEL] Preprocessing flags from ckpt: {preprocess_args}")
+    print(f"[MODEL] Loaded {model_path}  |  Device: {device}")
 
     pose_model_path, pose_model_url = _resolve_pose_model(args.pose_model)
     landmarker = None
@@ -1448,7 +1600,9 @@ def main(argv=None):
             frame_source = LatestFrameReader(cap).start()
         else:
             frame_source = SequentialFrameReader(cap)
-        print(f"[CAMERA] Backend: {backend}  low_latency={LOW_LATENCY_CAMERA}")
+        print(f"[CAMERA] Backend: {backend}  low_latency={LOW_LATENCY_CAMERA}  "
+              f"frame={int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))}x"
+              f"{int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))}")
 
     # Rolling landmark history, resampled to a fixed 1-second window so the
     # classifier sees the same time span whatever the live capture rate is.
@@ -1472,15 +1626,18 @@ def main(argv=None):
     )
 
     # Gate turns noisy per-frame predictions into clean game triggers.
+    gate_threshold = FAST_CONFIDENCE_THRESHOLD if use_fast else PREDICT_CONFIDENCE_THRESHOLD
+    gate_stable_frames = FAST_STABLE_FRAMES if use_fast else PREDICT_STABLE_FRAMES
     gate = ActionGate(
-        threshold     = PREDICT_CONFIDENCE_THRESHOLD,
-        stable_frames = PREDICT_STABLE_FRAMES,
+        threshold     = gate_threshold,
+        stable_frames = gate_stable_frames,
         cooldown_ms   = PREDICT_TRIGGER_COOLDOWN_MS,
         idle_label    = "idle",
-        fast_labels   = {"forward", "backward", "move_forward", "move_backward", "jump"},
+        fast_labels   = () if use_fast else {"forward", "backward", "move_forward", "move_backward", "jump"},
+        instant_confidence = FAST_INSTANT_CONFIDENCE if use_fast else None,
     )
-    print(f"[GATE]  threshold={PREDICT_CONFIDENCE_THRESHOLD}  "
-          f"stable_frames={PREDICT_STABLE_FRAMES}  "
+    print(f"[GATE]  threshold={gate_threshold}  "
+          f"stable_frames={gate_stable_frames}  "
           f"cooldown_ms={PREDICT_TRIGGER_COOLDOWN_MS}  "
           f"early_punch={early_enabled}")
     api_state.mark_status(
@@ -1570,11 +1727,34 @@ def main(argv=None):
                     early_label, early_confidence, _ = early_result
                     early_triggered = frame_ts_ms >= global_one_shot_cooldown_until_ms
 
-                window = frame_buffer.sample()
-                if window is not None:
+                frame_aspect = (TRAINING_ASPECT if replay_landmarks is not None
+                                else frame.shape[1] / frame.shape[0])
+                window = None if use_fast else frame_buffer.sample()
+                classifier_triggered = False
+                if use_fast:
+                    inference_start_ns = time.perf_counter_ns()
+                    fast_result = fast_classifier.step(landmark_frame, frame_ts_ms, frame_aspect)
+                    latency_stats.add("inference", _elapsed_ms(inference_start_ns))
+                    if fast_result is not None:
+                        prediction, confidence = fast_result
+                        gated_label, gated_confidence = apply_motion_gate(
+                            prediction, confidence, gate.last_triggered,
+                            fast_classifier.recent_motion(frame_ts_ms, FAST_MOTION_MEMORY_MS),
+                            FAST_MIN_MOTION,
+                        )
+                        stable_label, classifier_triggered_raw = gate.step(
+                            gated_label, gated_confidence, frame_ts_ms,
+                        )
+                        classifier_one_shot = _to_game_action(stable_label) in ONE_SHOT_GAME_ACTIONS
+                        classifier_triggered = (
+                            classifier_triggered_raw
+                            and (not classifier_one_shot or frame_ts_ms >= global_one_shot_cooldown_until_ms)
+                        )
+                elif window is not None:
                     preprocess_start_ns = time.perf_counter_ns()
                     tensor = _buffer_to_tensor(
                         window, model_type, preprocess_args, device,
+                        aspect=frame_aspect,
                     )
                     latency_stats.add("preprocess", _elapsed_ms(preprocess_start_ns))
 
@@ -1601,8 +1781,6 @@ def main(argv=None):
                         classifier_triggered_raw
                         and (not classifier_one_shot or frame_ts_ms >= global_one_shot_cooldown_until_ms)
                     )
-                else:
-                    classifier_triggered = False
 
                 if early_triggered:
                     publish_prediction = early_label
@@ -1624,7 +1802,7 @@ def main(argv=None):
                     trigger_counts["classifier"] += 1
                     if _to_game_action(stable_label) in ONE_SHOT_GAME_ACTIONS:
                         global_one_shot_cooldown_until_ms = frame_ts_ms + PREDICT_TRIGGER_COOLDOWN_MS
-                    print(f"[TRIGGER][classifier] {stable_label}  (conf={confidence:.2f})")
+                    print(f"[TRIGGER][classifier] {stable_label}  (conf={confidence:.2f})  t={frame_ts_ms}ms")
                 else:
                     publish_prediction = prediction
                     publish_confidence = confidence
@@ -1635,6 +1813,8 @@ def main(argv=None):
                 stable_label = None
                 triggered = False
                 publish_stable_label = None
+                if fast_classifier is not None:
+                    fast_classifier.clear()
 
             # FPS
             now = time.time()
@@ -1648,13 +1828,15 @@ def main(argv=None):
             latency_snapshot = latency_stats.snapshot()
 
             publish_start_ns = time.perf_counter_ns()
+            classifier_ready = fast_classifier.ready if use_fast else frame_buffer.ready
+            buffer_fill = (SEQUENCE_LENGTH if classifier_ready else 0) if use_fast else frame_buffer.fill
             if landmark_frame is None:
                 api_state.update_prediction(
                     prediction=prediction,
                     confidence=0.0,
                     stable_label=None,
                     triggered=False,
-                    buffer_fill=frame_buffer.fill,
+                    buffer_fill=buffer_fill,
                     fps=fps,
                     model_type=model_type,
                     capture_age_ms=capture_age_ms,
@@ -1663,13 +1845,13 @@ def main(argv=None):
                     status="no_pose",
                     message="No pose detected. Step into the camera view.",
                 )
-            elif not frame_buffer.ready and not triggered:
+            elif not classifier_ready and not triggered:
                 api_state.update_prediction(
                     prediction=prediction,
                     confidence=confidence,
                     stable_label=None,
                     triggered=False,
-                    buffer_fill=frame_buffer.fill,
+                    buffer_fill=buffer_fill,
                     fps=fps,
                     model_type=model_type,
                     capture_age_ms=capture_age_ms,
@@ -1684,7 +1866,7 @@ def main(argv=None):
                     confidence=publish_confidence,
                     stable_label=publish_stable_label,
                     triggered=triggered,
-                    buffer_fill=frame_buffer.fill,
+                    buffer_fill=buffer_fill,
                     fps=fps,
                     model_type=model_type,
                     trigger_source=trigger_source,
@@ -1710,11 +1892,13 @@ def main(argv=None):
                     stable_label   = publish_stable_label,
                     triggered      = triggered,
                     last_triggered = last_triggered,
-                    buffer_fill    = frame_buffer.fill,
+                    buffer_fill    = buffer_fill,
                     fps            = fps,
                     model_type     = model_type,
                     trigger_source = trigger_source,
                     latency_snapshot = latency_snapshot,
+                    legs_visible   = (landmark_frame is None
+                                      or float(landmark_frame[[27, 28], 3].min()) >= 0.5),
                 )
 
             frame_count += 1

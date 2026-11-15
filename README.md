@@ -48,6 +48,44 @@ npm run dev
 `ZERO CONTROLLER` for Player 1. If `ZERO CONTROLLER` is selected, the arena
 wait screen will stay locked until `run_model.py` is connected.
 
+Classifiers
+- `run_model.py` uses the low-latency classifier by default (`fast_action.py`,
+  `models/action_classifier_fast.pth`). It reads the current pose plus the last
+  133 ms of motion. Retrain with `python train_fast.py`.
+- Frame labels: a 1-second clip is not all action. Many clips hold the finished
+  pose, some start from standing, and every jump starts and ends on the ground.
+  `python tools/label_segments.py` marks each frame as action, early, idle or
+  ignore, and drops clips with no usable action. It writes
+  `data/labels/frame_labels.json` (read by `train_fast.py`) and
+  `data/labels/clip_review.csv` (one row per clip). Put hand corrections in
+  `data/labels/overrides.csv` and rerun it after recording new clips.
+- Score a model the way the game uses it, on a recording session it never saw:
+  `python train_fast.py --holdout-session 3 --save-path models/fast_s3.pth`, then
+  `python tools/eval_fast_stream.py --model models/fast_s3.pth --session 3`.
+  It reports moves that fired, delay from the start of each move, wrong
+  triggers, and false triggers per minute while standing.
+- `python train_fast.py --labels clip --transitions idle` reproduces the old
+  labelling (every frame is the clip's action), for comparison.
+
+Train on Google Colab (no laptop compute)
+- `notebooks/train_on_colab.ipynb` clones the repository, rebuilds the frame
+  labels, trains, and downloads `action_classifier_fast.pth` (with a copy in
+  Google Drive). Optional settings score the method on held-out sessions and
+  train the 1-second models on a GPU. Open it in Colab (File > Open notebook >
+  GitHub), check the settings cell, then choose Runtime > Run all.
+- Colab clones from GitHub, so push the branch first.
+- Recording sessions come from file times, which a clone resets. After recording,
+  run `python tools/label_segments.py` on the recording laptop: it saves the
+  sessions in `data/labels/sessions.json`. Commit that file with the new clips.
+- `data/multicam/` comes from the repository if committed, otherwise from Google
+  Drive, otherwise the notebook rebuilds it from the videos in git history (about
+  2-3 hours on a free Colab CPU, once).
+- `python run_model.py --classifier window` runs the older 1-second model.
+- A new action only fires if the body moved in the last 270 ms. If moves are
+  missed or fire by themselves, tune `FAST_MIN_MOTION` and
+  `FAST_CONFIDENCE_THRESHOLD` in `config.py`.
+- Stand with your full body in frame, since kicks and movement need the legs.
+
 Files (brief, bullet points)
 - `config.py`: global constants — camera options, MediaPipe model path/URL,
   data paths, sequence length, and training hyperparameters.
